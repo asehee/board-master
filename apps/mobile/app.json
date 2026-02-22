@@ -9,7 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "보드판 촬영을 위해 카메라 접근 권한이 필요합니다.",
+        "NSPhotoLibraryUsageDescription": "BoardCam 앨범에 사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.",
+        "NSPhotoLibraryAddUsageDescription": "BoardCam 앨범에 사진을 추가하기 위해 권한이 필요합니다."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -38,11 +43,24 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "보드판 촬영을 위해 카메라 접근 권한이 필요합니다."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "BoardCam 앨범에 사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.",
+          "savePhotosPermission": "BoardCam 앨범에 사진을 추가하기 위해 권한이 필요합니다.",
+          "isAccessMediaLocationEnabled": true
+        }
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     }
   }
 }
