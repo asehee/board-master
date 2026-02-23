@@ -17,7 +17,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as MediaLibrary from 'expo-media-library';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import {
   Canvas,
   Image as SkiaImage,
@@ -57,7 +57,6 @@ export default function PreviewScreen() {
 
   // 시스템 폰트로 Paragraph 빌드 (custom font 파일 불필요)
   const paragraphs = useMemo(() => {
-    const fontMgr = Skia.FontMgr.System();
     const fontSize = Math.max(10, Math.min(14, Math.round(cellH * 0.32)));
 
     return boardLabels.map((label) => {
@@ -70,7 +69,6 @@ export default function PreviewScreen() {
           },
           textAlign: TextAlign.Center,
         },
-        fontMgr,
       )
         .addText(label)
         .build();
@@ -89,9 +87,11 @@ export default function PreviewScreen() {
 
       // 2. base64 → 임시 파일
       const base64 = snapshot.encodeToBase64();
-      const path = `${FileSystem.cacheDirectory}board_${Date.now()}.png`;
+      const cacheDir = FileSystem.cacheDirectory;
+      if (!cacheDir) throw new Error('임시 저장 경로를 찾을 수 없습니다.');
+      const path = `${cacheDir}board_${Date.now()}.png`;
       await FileSystem.writeAsStringAsync(path, base64, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
 
       // 3. MediaLibrary 저장 + 앨범 분류
