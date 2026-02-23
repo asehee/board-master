@@ -14,7 +14,8 @@
         "NSCameraUsageDescription": "보드판 촬영을 위해 카메라 접근 권한이 필요합니다.",
         "NSPhotoLibraryUsageDescription": "BoardCam 앨범에 사진을 저장하기 위해 사진 라이브러리 접근 권한이 필요합니다.",
         "NSPhotoLibraryAddUsageDescription": "BoardCam 앨범에 사진을 추가하기 위해 권한이 필요합니다."
-      }
+      },
+      "bundleIdentifier": "com.anonymous.board-master"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +25,18 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
