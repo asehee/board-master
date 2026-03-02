@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuthStore } from '@/src/providers/AppProvider';
 import { usePresetStore } from '@/src/stores/preset.store';
+import { UI } from '@/src/theme/tokens';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -57,7 +58,7 @@ export default function SettingsScreen() {
   const handleLogout = () => {
     Alert.alert('로그아웃', '로그아웃하시겠습니까?', [
       { text: '취소', style: 'cancel' },
-      { text: '로그아웃', style: 'destructive', onPress: () => logout() },
+      { text: '로그아웃', onPress: () => logout() },
     ]);
   };
 
@@ -80,7 +81,7 @@ export default function SettingsScreen() {
           value={albumDraft}
           onChangeText={setAlbumDraft}
           placeholder="앨범 이름 입력"
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={UI.colors.muted}
           maxLength={40}
           returnKeyType="done"
         />
@@ -105,7 +106,7 @@ export default function SettingsScreen() {
               value={label}
               onChangeText={(v) => handleLabelChange(idx, v)}
               placeholder={`칸 ${idx + 1}`}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={UI.colors.muted}
               maxLength={20}
               returnKeyType="next"
             />
@@ -134,32 +135,32 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  container: { flex: 1, backgroundColor: UI.colors.white },
   content: { paddingHorizontal: 24, gap: 28 },
-  pageTitle: { fontSize: 28, fontWeight: '700', color: '#111827' },
+  pageTitle: { fontSize: 28, fontWeight: '700', color: UI.colors.primary },
 
   section: { gap: 12 },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6B7280',
+    color: UI.colors.muted,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
-  sectionDesc: { fontSize: 14, color: '#374151', lineHeight: 20 },
+  sectionDesc: { fontSize: 14, color: UI.colors.muted, lineHeight: 20 },
 
   input: {
     height: 48,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
+    borderColor: UI.colors.borderStrong,
+    borderRadius: UI.radius.md,
     paddingHorizontal: 16,
     fontSize: 16,
-    backgroundColor: '#fff',
-    color: '#111827',
+    backgroundColor: UI.colors.white,
+    color: UI.colors.primary,
   },
-  preview: { fontSize: 13, color: '#6B7280' },
-  previewBold: { fontWeight: '600', color: '#111827' },
+  preview: { fontSize: 13, color: UI.colors.muted },
+  previewBold: { fontWeight: '600', color: UI.colors.primary },
 
   labelGrid: {
     flexDirection: 'row',
@@ -170,32 +171,32 @@ const styles = StyleSheet.create({
     width: '48%',
     height: 44,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 8,
+    borderColor: UI.colors.borderStrong,
+    borderRadius: UI.radius.sm,
     paddingHorizontal: 12,
     fontSize: 14,
-    backgroundColor: '#fff',
-    color: '#111827',
+    backgroundColor: UI.colors.white,
+    color: UI.colors.primary,
   },
 
   saveBtn: {
     height: 50,
-    backgroundColor: '#2563EB',
-    borderRadius: 10,
+    backgroundColor: UI.colors.primary,
+    borderRadius: UI.radius.md,
     justifyContent: 'center',
     alignItems: 'center',
   },
   disabled: { opacity: 0.5 },
-  saveBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  saveBtnText: { color: UI.colors.white, fontWeight: '700', fontSize: 16 },
 
   logoutBtn: {
     height: 46,
-    backgroundColor: '#FEF2F2',
-    borderRadius: 10,
+    backgroundColor: UI.colors.white,
+    borderRadius: UI.radius.md,
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: UI.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  logoutBtnText: { color: '#DC2626', fontWeight: '600', fontSize: 16 },
+  logoutBtnText: { color: UI.colors.primary, fontWeight: '600', fontSize: 16 },
 });

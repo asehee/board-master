@@ -3,24 +3,26 @@ import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { UI } from '@/src/theme/tokens';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: UI.colors.primary,
+        tabBarInactiveTintColor: UI.colors.muted,
         headerShown: false,
         tabBarButton: HapticTab,
+        tabBarStyle: {
+          backgroundColor: UI.colors.white,
+          borderTopColor: UI.colors.border,
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: '촬영',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="camera.fill" color={color} />,
+          title: '홈',
+          tabBarIcon: ({ color }) => <IconSymbol size={26} name="house.fill" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -29,6 +31,15 @@ export default function TabLayout() {
           title: '설정',
           tabBarIcon: ({ color }) => (
             <IconSymbol size={26} name="slider.horizontal.3" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="gallery"
+        options={{
+          title: '갤러리',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="photo.on.rectangle" color={color} />
           ),
         }}
       />

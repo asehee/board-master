@@ -1,186 +1,207 @@
-import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as MediaLibrary from 'expo-media-library';
-import { useEffect, useRef, useState } from 'react';
+import { Image } from 'expo-image';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
+  Dimensions,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 
 import { usePresetStore } from '@/src/stores/preset.store';
+import { UI } from '@/src/theme/tokens';
 
-export default function CameraScreen() {
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
-  const [mediaPermission, requestMediaPermission] = MediaLibrary.usePermissions();
-  const cameraRef = useRef<CameraView>(null);
-  const [isTaking, setIsTaking] = useState(false);
+const THUMB_SIZE = Math.round((Dimensions.get('window').width - 48 - 8 * 2) / 3);
+
+type Asset = MediaLibrary.Asset;
+
+export default function HomeScreen() {
+  const { albumName, load } = usePresetStore();
+  const [permission] = MediaLibrary.usePermissions();
+  const [recentPhotos, setRecentPhotos] = useState<Asset[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { albumName, load } = usePresetStore();
 
-  // 설정에서 저장한 앨범 이름 로드
   useEffect(() => {
     load();
   }, [load]);
 
-  // ─── 권한 로딩 중 ─────────────────────────────────────────────
-  if (!cameraPermission || !mediaPermission) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2563EB" />
-      </View>
-    );
-  }
-
-  // ─── 권한 미승인 → 요청 화면 ──────────────────────────────────
-  if (!cameraPermission.granted || !mediaPermission.granted) {
-    return (
-      <View style={[styles.permissionContainer, { paddingTop: insets.top + 32 }]}>
-        <Text style={styles.permissionTitle}>권한이 필요합니다</Text>
-
-        {!cameraPermission.granted && (
-          <View style={styles.permissionBlock}>
-            <Text style={styles.permissionDesc}>
-              📷 보드판 촬영을 위해 카메라 접근 권한이 필요합니다.
-            </Text>
-            <TouchableOpacity style={styles.permissionBtn} onPress={requestCameraPermission}>
-              <Text style={styles.permissionBtnText}>카메라 권한 허용</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {!mediaPermission.granted && (
-          <View style={styles.permissionBlock}>
-            <Text style={styles.permissionDesc}>
-              🖼️ 앨범 저장을 위해 사진 라이브러리 권한이 필요합니다.
-            </Text>
-            <TouchableOpacity style={styles.permissionBtn} onPress={requestMediaPermission}>
-              <Text style={styles.permissionBtnText}>사진 권한 허용</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-    );
-  }
-
-  // ─── 촬영 → preview로 이동 ────────────────────────────────────
-  const handleCapture = async () => {
-    if (!cameraRef.current || isTaking) return;
-    setIsTaking(true);
+  const fetchRecent = useCallback(async () => {
+    setLoading(true);
     try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
-      // Skia 합성·저장은 preview 화면에서 처리
-      router.push({ pathname: '/preview', params: { photo: photo.uri } });
-    } catch (error) {
-      Alert.alert('오류', error instanceof Error ? error.message : '촬영 실패');
+      const album = await MediaLibrary.getAlbumAsync(albumName);
+      if (!album) {
+        setRecentPhotos([]);
+        setTotalCount(0);
+        return;
+      }
+      const result = await MediaLibrary.getAssetsAsync({
+        album,
+        mediaType: 'photo',
+        sortBy: [['creationTime', false]],
+        first: 3,
+      });
+      setRecentPhotos(result.assets);
+      setTotalCount(result.totalCount);
     } finally {
-      setIsTaking(false);
+      setLoading(false);
     }
-  };
+  }, [albumName]);
 
-  // ─── 카메라 화면 ──────────────────────────────────────────────
+  useEffect(() => {
+    if (permission?.granted) {
+      fetchRecent();
+    } else {
+      setLoading(false);
+    }
+  }, [permission, fetchRecent]);
+
   return (
-    <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="back">
-        {/* 상단 앨범 배지 */}
-        <View style={[styles.topBadge, { paddingTop: insets.top + 12 }]}>
-          <Text style={styles.albumBadge}>{albumName}</Text>
-        </View>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32 },
+      ]}
+      showsVerticalScrollIndicator={false}>
 
-        {/* 하단 셔터 영역 */}
-        <View style={[styles.controls, { paddingBottom: insets.bottom + 20 }]}>
-          <TouchableOpacity
-            style={[styles.shutter, isTaking && styles.shutterDisabled]}
-            onPress={handleCapture}
-            disabled={isTaking}
-            activeOpacity={0.7}>
-            {isTaking ? (
-              <ActivityIndicator color="#1D1D1F" size="small" />
-            ) : (
-              <View style={styles.shutterInner} />
-            )}
-          </TouchableOpacity>
+      {/* 헤더 */}
+      <View style={styles.header}>
+        <Text style={styles.appTitle}>BoardCam</Text>
+      </View>
+
+      {/* 앨범 통계 카드 */}
+      <View style={styles.statsCard}>
+        <View style={styles.statsCardAccent} />
+        <View style={styles.statsCardBody}>
+          <Text style={styles.statsLabel}>저장 앨범</Text>
+          <Text style={styles.statsAlbum}>{albumName}</Text>
+          {!loading && (
+            <Text style={styles.statsCount}>
+              {totalCount > 0 ? `사진 ${totalCount}장` : '아직 저장된 사진이 없습니다'}
+            </Text>
+          )}
         </View>
-      </CameraView>
-    </View>
+      </View>
+
+      {/* 최근 사진 */}
+      {permission?.granted && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>최근 촬영</Text>
+            {totalCount > 0 && (
+              <TouchableOpacity onPress={() => router.push('/(tabs)/gallery')} hitSlop={8}>
+                <Text style={styles.seeAll}>전체보기</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {loading ? (
+            <View style={styles.thumbsRow}>
+              {[0, 1, 2].map((i) => (
+                <View key={i} style={[styles.thumbPlaceholder, { width: THUMB_SIZE, height: THUMB_SIZE }]} />
+              ))}
+            </View>
+          ) : recentPhotos.length > 0 ? (
+            <View style={styles.thumbsRow}>
+              {recentPhotos.map((asset) => (
+                <TouchableOpacity
+                  key={asset.id}
+                  activeOpacity={0.8}
+                  onPress={() => router.push({ pathname: '/photo-viewer', params: { uri: asset.uri } })}>
+                  <Image
+                    source={{ uri: asset.uri }}
+                    style={{ width: THUMB_SIZE, height: THUMB_SIZE, borderRadius: 10 }}
+                    contentFit="cover"
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyPhotos}>
+              <Text style={styles.emptyText}>촬영한 사진이 없습니다</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* 촬영 시작 버튼 */}
+      <TouchableOpacity
+        style={styles.captureBtn}
+        onPress={() => router.push('/camera')}
+        activeOpacity={0.85}>
+        <Text style={styles.captureBtnText}>촬영 시작</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  camera: { flex: 1 },
+  container: { flex: 1, backgroundColor: UI.colors.white },
+  content: { paddingHorizontal: 24, gap: 24 },
 
-  topBadge: { alignItems: 'center' },
-  albumBadge: {
-    color: 'rgba(255,255,255,0.9)',
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  appTitle: { fontSize: 28, fontWeight: '700', color: UI.colors.primary },
+
+  statsCard: {
+    flexDirection: 'row',
+    backgroundColor: UI.colors.white,
+    borderRadius: UI.radius.lg,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: UI.colors.border,
+    shadowColor: UI.colors.primary,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
+  statsCardAccent: { width: 4, backgroundColor: UI.colors.primary },
+  statsCardBody: { flex: 1, paddingVertical: 16, paddingHorizontal: 16, gap: 4 },
+  statsLabel: { fontSize: 11, fontWeight: '600', color: UI.colors.muted, textTransform: 'uppercase', letterSpacing: 0.8 },
+  statsAlbum: { fontSize: 18, fontWeight: '700', color: UI.colors.primary },
+  statsCount: { fontSize: 13, color: UI.colors.muted },
 
-  controls: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  shutter: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    borderWidth: 4,
-    borderColor: '#fff',
+  section: { gap: 12 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionTitle: { fontSize: 15, fontWeight: '600', color: UI.colors.primary },
+  seeAll: { fontSize: 13, fontWeight: '500', color: UI.colors.primary },
+
+  thumbsRow: { flexDirection: 'row', gap: 8 },
+  thumbPlaceholder: { borderRadius: UI.radius.sm, backgroundColor: UI.colors.overlaySoft },
+
+  emptyPhotos: {
+    height: THUMB_SIZE,
+    borderRadius: UI.radius.sm,
+    backgroundColor: UI.colors.overlaySoft,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
   },
-  shutterDisabled: { opacity: 0.4 },
-  shutterInner: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: '#fff',
-  },
+  emptyText: { fontSize: 13, color: UI.colors.muted },
 
-  permissionContainer: {
-    flex: 1,
-    paddingHorizontal: 28,
-    paddingBottom: 48,
-    backgroundColor: '#fff',
-    gap: 28,
-  },
-  permissionTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#111827',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  permissionBlock: { gap: 12 },
-  permissionDesc: { fontSize: 16, color: '#374151', lineHeight: 26 },
-  permissionBtn: {
-    backgroundColor: '#2563EB',
-    borderRadius: 10,
-    paddingVertical: 14,
+  captureBtn: {
+    height: 54,
+    backgroundColor: UI.colors.primary,
+    borderRadius: UI.radius.lg,
+    justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: UI.colors.primary,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+    marginTop: 8,
   },
-  permissionBtnText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  captureBtnText: { color: UI.colors.white, fontSize: 17, fontWeight: '700' },
 });

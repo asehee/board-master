@@ -1,14 +1,26 @@
 import 'react-native-reanimated';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AppProvider, useAuthStore } from '@/src/providers/AppProvider';
+import { UI } from '@/src/theme/tokens';
+
+const appTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    primary: UI.colors.primary,
+    background: UI.colors.white,
+    card: UI.colors.white,
+    text: UI.colors.primary,
+    border: UI.colors.border,
+    notification: UI.colors.primary,
+  },
+};
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
   const router = useRouter();
   const segments = useSegments();
   const { status, restoreSession } = useAuthStore();
@@ -37,16 +49,18 @@ function RootLayoutNav() {
   }, [status, segments, router]);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={appTheme}>
       <Stack>
         {/* 루트 진입점: 세션 복원 중 스피너 + 초기 redirect */}
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="camera" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
         <Stack.Screen name="preview" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
+        <Stack.Screen name="photo-viewer" options={{ headerShown: false, presentation: 'fullScreenModal' }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
     </ThemeProvider>
   );
 }

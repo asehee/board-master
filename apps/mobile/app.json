@@ -3,7 +3,7 @@
     "name": "board-master",
     "slug": "board-master",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "boardmaster",
     "userInterfaceStyle": "automatic",
