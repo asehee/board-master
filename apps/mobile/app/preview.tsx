@@ -41,6 +41,11 @@ import {
 
 import { usePresetStore } from '@/src/stores/preset.store';
 import { UI } from '@/src/theme/tokens';
+import {
+  getOrientationDebug,
+  parseOptionalNumber,
+  resolveIsLandscape,
+} from '@/src/features/preview/orientation';
 
 // ─── 상수 ──────────────────────────────────────────────────────────────────
 const BOTTOM_BAR_H = 70;
@@ -74,24 +79,27 @@ export default function PreviewScreen() {
   const skiaPhoto = useImage(photo);
 
   // ─── 방향 감지 & 치수 계산 ───────────────────────────────────────────────
-  // EXIF Orientation을 최우선으로 사용하고, 없으면 카메라 치수/Skia 치수 순으로 fallback.
-  // iOS 촬영본은 raw 픽셀(width/height)이 가로이고 EXIF로 세로가 표현되는 경우가 있어 보정이 필요.
-  const exifOrientation = Number(photoOrientation ?? 0);
-  const camW = Number(photoW ?? 0);
-  const camH = Number(photoH ?? 0);
-  // EXIF orientation:
-  // 6/8은 raw 픽셀이 가로여도 최종 표시가 세로인 경우가 많다(모바일 카메라 일반 케이스).
-  // 1/3은 표시가 가로인 경우로 취급.
-  const isLandscape =
-    exifOrientation === 6 || exifOrientation === 8
-      ? false
-      : exifOrientation === 1 || exifOrientation === 3
-        ? true
-        : camW > 0 && camH > 0
-          ? camW === camH
-            ? width > height
-            : camW > camH
-          : width > height; // fallback: 화면 방향
+  const exifOrientation = parseOptionalNumber(photoOrientation);
+  const camW = parseOptionalNumber(photoW);
+  const camH = parseOptionalNumber(photoH);
+  const isLandscape = resolveIsLandscape({
+    exifOrientation,
+    cameraWidth: camW,
+    cameraHeight: camH,
+    screenWidth: width,
+    screenHeight: height,
+  });
+  const orientationDebug = useMemo(
+    () =>
+      getOrientationDebug({
+        exifOrientation,
+        cameraWidth: camW,
+        cameraHeight: camH,
+        screenWidth: width,
+        screenHeight: height,
+      }),
+    [exifOrientation, camW, camH, width, height]
+  );
   const totalH = height - insets.bottom - BOTTOM_BAR_H;
 
   useEffect(() => {
@@ -101,14 +109,12 @@ export default function PreviewScreen() {
       photoW,
       photoH,
       photoOrientation,
-      exifOrientation,
-      camW,
-      camH,
+      ...orientationDebug,
       screenW: width,
       screenH: height,
       isLandscape,
     });
-  }, [photo, photoW, photoH, photoOrientation, exifOrientation, camW, camH, width, height, isLandscape]);
+  }, [photo, photoW, photoH, photoOrientation, orientationDebug, width, height, isLandscape]);
 
   // 세로 모드 치수
   const photoH_P = totalH - BOARD_H_PORTRAIT; // 사진 높이
