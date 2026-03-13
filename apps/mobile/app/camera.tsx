@@ -73,12 +73,7 @@ export default function CameraScreen() {
       const photo = await cameraRef.current.takePictureAsync({ quality: 1, exif: true });
       const orientation = String(photo.exif?.Orientation ?? 0);
       if (__DEV__) {
-        console.log('[camera] capture meta', {
-          uri: photo.uri,
-          width: photo.width,
-          height: photo.height,
-          exifOrientation: orientation,
-        });
+        console.log(`[camera] w=${photo.width} h=${photo.height} exif=${orientation}`);
       }
       router.replace({
         pathname: '/preview',

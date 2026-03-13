@@ -42,7 +42,6 @@ import {
 import { usePresetStore } from '@/src/stores/preset.store';
 import { UI } from '@/src/theme/tokens';
 import {
-  getOrientationDebug,
   parseOptionalNumber,
   resolveIsLandscape,
 } from '@/src/features/preview/orientation';
@@ -89,32 +88,14 @@ export default function PreviewScreen() {
     screenWidth: width,
     screenHeight: height,
   });
-  const orientationDebug = useMemo(
-    () =>
-      getOrientationDebug({
-        exifOrientation,
-        cameraWidth: camW,
-        cameraHeight: camH,
-        screenWidth: width,
-        screenHeight: height,
-      }),
-    [exifOrientation, camW, camH, width, height]
-  );
   const totalH = height - insets.bottom - BOTTOM_BAR_H;
 
   useEffect(() => {
     if (!__DEV__) return;
-    console.log('[preview] orientation decision', {
-      photo,
-      photoW,
-      photoH,
-      photoOrientation,
-      ...orientationDebug,
-      screenW: width,
-      screenH: height,
-      isLandscape,
-    });
-  }, [photo, photoW, photoH, photoOrientation, orientationDebug, width, height, isLandscape]);
+    console.log(
+      `[preview] exif=${exifOrientation} camW=${camW} camH=${camH} screenW=${width} screenH=${height} isLandscape=${isLandscape}`
+    );
+  }, [exifOrientation, camW, camH, width, height, isLandscape]);
 
   // 세로 모드 치수
   const photoH_P = totalH - BOARD_H_PORTRAIT; // 사진 높이

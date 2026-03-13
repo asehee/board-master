@@ -23,11 +23,11 @@ export function resolveIsLandscape(input: ResolveOrientationInput): boolean {
   const camW = input.cameraWidth ?? 0;
   const camH = input.cameraHeight ?? 0;
 
-  // EXIF orientation:
-  // 6/8: portrait display in most phone-capture cases.
-  // 1/3: landscape display.
-  if (exif === 6 || exif === 8) return false;
-  if (exif === 1 || exif === 3) return true;
+  // iOS EXIF orientation:
+  // 1 = portrait (no rotation needed), 3 = portrait upside-down
+  // 6 = landscape right (90° CW), 8 = landscape left (90° CCW)
+  if (exif === 1 || exif === 3) return false;
+  if (exif === 6 || exif === 8) return true;
 
   if (camW > 0 && camH > 0) {
     if (camW === camH) return input.screenWidth > input.screenHeight;
