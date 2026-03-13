@@ -3,7 +3,6 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/ui/button';
 import { usePresetStore } from '@/src/stores/preset.store';
 import { UI } from '@/src/theme/tokens';
 
@@ -133,12 +133,7 @@ export default function HomeScreen() {
       )}
 
       {/* 촬영 시작 버튼 */}
-      <TouchableOpacity
-        style={styles.captureBtn}
-        onPress={() => router.push('/camera')}
-        activeOpacity={0.85}>
-        <Text style={styles.captureBtnText}>촬영 시작</Text>
-      </TouchableOpacity>
+      <Button label="촬영 시작" style={styles.captureBtn} onPress={() => router.push('/camera')} />
     </ScrollView>
   );
 }
@@ -191,11 +186,6 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 13, color: UI.colors.muted },
 
   captureBtn: {
-    height: 54,
-    backgroundColor: UI.colors.primary,
-    borderRadius: UI.radius.lg,
-    justifyContent: 'center',
-    alignItems: 'center',
     shadowColor: UI.colors.primary,
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -203,5 +193,4 @@ const styles = StyleSheet.create({
     elevation: 4,
     marginTop: 8,
   },
-  captureBtnText: { color: UI.colors.white, fontSize: 17, fontWeight: '700' },
 });

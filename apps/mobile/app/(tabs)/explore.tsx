@@ -5,11 +5,11 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/src/providers/AppProvider';
 import { usePresetStore } from '@/src/stores/preset.store';
 import { UI } from '@/src/theme/tokens';
@@ -115,20 +115,12 @@ export default function SettingsScreen() {
       </View>
 
       {/* 저장 버튼 */}
-      <TouchableOpacity
-        style={[styles.saveBtn, isSaving && styles.disabled]}
-        onPress={handleSaveAll}
-        disabled={isSaving}
-        activeOpacity={0.8}>
-        <Text style={styles.saveBtnText}>설정 저장</Text>
-      </TouchableOpacity>
+      <Button label="설정 저장" style={styles.saveBtn} onPress={handleSaveAll} loading={isSaving} />
 
       {/* 계정 */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>계정</Text>
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
-          <Text style={styles.logoutBtnText}>로그아웃</Text>
-        </TouchableOpacity>
+        <Button label="로그아웃" variant="secondary" style={styles.logoutBtn} onPress={handleLogout} />
       </View>
     </ScrollView>
   );
@@ -180,23 +172,8 @@ const styles = StyleSheet.create({
   },
 
   saveBtn: {
-    height: 50,
-    backgroundColor: UI.colors.primary,
-    borderRadius: UI.radius.md,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  disabled: { opacity: 0.5 },
-  saveBtnText: { color: UI.colors.white, fontWeight: '700', fontSize: 16 },
 
   logoutBtn: {
-    height: 46,
-    backgroundColor: UI.colors.white,
-    borderRadius: UI.radius.md,
-    borderWidth: 1,
-    borderColor: UI.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
-  logoutBtnText: { color: UI.colors.primary, fontWeight: '600', fontSize: 16 },
 });

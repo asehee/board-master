@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/ui/button';
 import { UI } from '@/src/theme/tokens';
 
 const COLUMN = 3;
@@ -36,7 +37,7 @@ function AlbumRow({ album, onPress }: { album: Album; onPress: () => void }) {
     }).then((result) => {
       if (result.assets.length > 0) setThumb(result.assets[0].uri);
     });
-  }, [album.id]);
+  }, [album]);
 
   return (
     <TouchableOpacity style={styles.albumRow} onPress={onPress} activeOpacity={0.7}>
@@ -130,9 +131,7 @@ export default function GalleryScreen() {
     return (
       <View style={[styles.centered, { paddingTop: insets.top }]}>
         <Text style={styles.emptyTitle}>사진 접근 권한이 필요합니다</Text>
-        <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
-          <Text style={styles.permBtnText}>권한 허용</Text>
-        </TouchableOpacity>
+        <Button label="권한 허용" style={styles.permBtn} onPress={requestPermission} />
       </View>
     );
   }
@@ -284,10 +283,6 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 17, fontWeight: '600', color: UI.colors.primary },
   emptyDesc: { fontSize: 14, color: UI.colors.muted, textAlign: 'center', paddingHorizontal: 32 },
   permBtn: {
-    backgroundColor: UI.colors.primary,
-    borderRadius: UI.radius.md,
-    paddingVertical: 12,
     paddingHorizontal: 28,
   },
-  permBtnText: { color: UI.colors.white, fontWeight: '600', fontSize: 15 },
 });

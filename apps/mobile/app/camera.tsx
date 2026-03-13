@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
+import { Button } from '@/components/ui/button';
 import { usePresetStore } from '@/src/stores/preset.store';
 import { UI } from '@/src/theme/tokens';
 
@@ -46,9 +47,7 @@ export default function CameraScreen() {
             <Text style={styles.permissionDesc}>
               보드판 촬영을 위해 카메라 접근 권한이 필요합니다.
             </Text>
-            <TouchableOpacity style={styles.permissionBtn} onPress={requestCameraPermission}>
-              <Text style={styles.permissionBtnText}>카메라 권한 허용</Text>
-            </TouchableOpacity>
+            <Button label="카메라 권한 허용" onPress={requestCameraPermission} />
           </View>
         )}
 
@@ -57,9 +56,7 @@ export default function CameraScreen() {
             <Text style={styles.permissionDesc}>
               앨범 저장을 위해 사진 라이브러리 권한이 필요합니다.
             </Text>
-            <TouchableOpacity style={styles.permissionBtn} onPress={requestMediaPermission}>
-              <Text style={styles.permissionBtnText}>사진 권한 허용</Text>
-            </TouchableOpacity>
+            <Button label="사진 권한 허용" onPress={requestMediaPermission} />
           </View>
         )}
       </View>
@@ -195,11 +192,4 @@ const styles = StyleSheet.create({
   },
   permissionBlock: { gap: 12 },
   permissionDesc: { fontSize: 16, color: UI.colors.muted, lineHeight: 26 },
-  permissionBtn: {
-    backgroundColor: UI.colors.primary,
-    borderRadius: UI.radius.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  permissionBtnText: { color: UI.colors.white, fontWeight: '600', fontSize: 16 },
 });

@@ -3,14 +3,14 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
 } from 'react-native';
+import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/src/providers/AppProvider';
+import { UI } from '@/src/theme/tokens';
 
 export function LoginScreen() {
   const [email, setEmail] = useState('test@example.com');
@@ -65,18 +65,12 @@ export function LoginScreen() {
               placeholderTextColor="#9CA3AF"
             />
 
-            <TouchableOpacity
-              style={[styles.button, isLoading && styles.buttonDisabled]}
+            <Button
+              label="로그인"
+              style={styles.button}
               onPress={handleLogin}
-              disabled={isLoading}
-              activeOpacity={0.8}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonLabel}>로그인</Text>
-              )}
-            </TouchableOpacity>
+              loading={isLoading}
+            />
           </View>
 
           <Text style={styles.devHint}>
@@ -89,7 +83,7 @@ export function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#fff' },
+  safe: { flex: 1, backgroundColor: UI.colors.white },
   flex: { flex: 1 },
   inner: {
     flex: 1,
@@ -98,34 +92,27 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   header: { alignItems: 'center', marginBottom: 8 },
-  title: { fontSize: 32, fontWeight: '700', color: '#111827' },
-  subtitle: { fontSize: 16, color: '#6B7280', marginTop: 4 },
+  title: { fontSize: 32, fontWeight: '700', color: UI.colors.primary },
+  subtitle: { fontSize: 16, color: UI.colors.muted, marginTop: 4 },
   errorBox: {
-    backgroundColor: '#FEF2F2',
+    backgroundColor: UI.colors.overlaySoft,
     borderRadius: 8,
     padding: 12,
   },
-  errorText: { color: '#DC2626', fontSize: 14, textAlign: 'center' },
+  errorText: { color: UI.colors.primary, fontSize: 14, textAlign: 'center' },
   form: { gap: 12 },
   input: {
     height: 48,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: UI.colors.borderStrong,
     borderRadius: 8,
     paddingHorizontal: 16,
     fontSize: 16,
-    backgroundColor: '#F9FAFB',
-    color: '#111827',
+    backgroundColor: UI.colors.white,
+    color: UI.colors.primary,
   },
   button: {
-    height: 48,
-    backgroundColor: '#2563EB',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
     marginTop: 4,
   },
-  buttonDisabled: { opacity: 0.6 },
-  buttonLabel: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  devHint: { fontSize: 12, color: '#9CA3AF', textAlign: 'center' },
+  devHint: { fontSize: 12, color: UI.colors.muted, textAlign: 'center' },
 });

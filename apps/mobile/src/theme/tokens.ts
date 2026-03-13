@@ -16,4 +16,7 @@ export const UI = {
     lg: 18,
     pill: 999,
   },
+  sizes: {
+    buttonHeight: 52,
+  },
 } as const;
