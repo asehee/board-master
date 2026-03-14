@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
+import { TopBar } from '@/components/ui/top-bar';
 import { UI } from '@/src/theme/tokens';
 
 const COLUMN = 3;
@@ -149,19 +150,16 @@ export default function GalleryScreen() {
   if (selectedAlbum) {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        {/* 헤더 */}
-        <View style={styles.photoHeader}>
-          <TouchableOpacity onPress={handleBack} hitSlop={12} style={styles.backBtn}>
-            <Text style={styles.backText}>‹</Text>
-          </TouchableOpacity>
-          <View style={styles.photoHeaderMeta}>
-            <Text style={styles.photoHeaderTitle} numberOfLines={1}>
-              {selectedAlbum.title}
-            </Text>
-            <Text style={styles.photoHeaderCount}>{photos.length}장</Text>
-          </View>
-          <View style={{ width: 32 }} />
-        </View>
+        <TopBar
+          style={styles.topBar}
+          title={selectedAlbum.title}
+          subtitle={`${photos.length}장`}
+          leftSlot={
+            <TouchableOpacity onPress={handleBack} hitSlop={12} style={styles.backBtn}>
+              <Text style={styles.backText}>‹</Text>
+            </TouchableOpacity>
+          }
+        />
 
         {photos.length === 0 ? (
           <View style={styles.centered}>
@@ -197,7 +195,7 @@ export default function GalleryScreen() {
   // ─── 앨범 목록 ────────────────────────────────────────────────────────
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Text style={styles.pageTitle}>갤러리</Text>
+      <TopBar style={styles.topBar} title="갤러리" subtitle="앨범을 선택해 사진을 확인하세요." />
 
       {albums.length === 0 ? (
         <View style={styles.centered}>
@@ -230,13 +228,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 
-  pageTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: UI.colors.primary,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: UI.colors.white,
+  topBar: {
+    paddingHorizontal: UI.spacing.xxl,
+    paddingVertical: UI.spacing.lg,
   },
 
   // ─── 앨범 목록 ───
@@ -264,20 +258,8 @@ const styles = StyleSheet.create({
   chevron: { fontSize: 22, color: UI.colors.muted, fontWeight: '300' },
 
   // ─── 사진 그리드 헤더 ───
-  photoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: UI.colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: UI.colors.border,
-  },
   backBtn: { width: 32, justifyContent: 'center' },
   backText: { fontSize: 28, color: UI.colors.primary, fontWeight: '300', lineHeight: 32 },
-  photoHeaderMeta: { flex: 1, alignItems: 'center', gap: 2 },
-  photoHeaderTitle: { fontSize: 15, fontWeight: '700', color: UI.colors.primary },
-  photoHeaderCount: { fontSize: 12, color: UI.colors.muted },
 
   // ─── 빈 상태 ───
   emptyTitle: { fontSize: 17, fontWeight: '600', color: UI.colors.primary },

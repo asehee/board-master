@@ -13,6 +13,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { TopBar } from '@/components/ui/top-bar';
 import { usePresetStore } from '@/src/stores/preset.store';
 import { UI } from '@/src/theme/tokens';
 
@@ -68,17 +70,13 @@ export default function HomeScreen() {
       style={styles.container}
       contentContainerStyle={[
         styles.content,
-        { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32 },
+        { paddingTop: insets.top + UI.spacing.xxl, paddingBottom: insets.bottom + UI.spacing.xxxl },
       ]}
       showsVerticalScrollIndicator={false}>
-
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <Text style={styles.appTitle}>BoardCam</Text>
-      </View>
+      <TopBar title="BoardCam" subtitle="현장 보드 촬영과 저장을 빠르게 처리하세요." />
 
       {/* 앨범 통계 카드 */}
-      <View style={styles.statsCard}>
+      <Card style={styles.statsCard}>
         <View style={styles.statsCardAccent} />
         <View style={styles.statsCardBody}>
           <Text style={styles.statsLabel}>저장 앨범</Text>
@@ -89,11 +87,11 @@ export default function HomeScreen() {
             </Text>
           )}
         </View>
-      </View>
+      </Card>
 
       {/* 최근 사진 */}
       {permission?.granted && (
-        <View style={styles.section}>
+        <Card style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>최근 촬영</Text>
             {totalCount > 0 && (
@@ -129,7 +127,7 @@ export default function HomeScreen() {
               <Text style={styles.emptyText}>촬영한 사진이 없습니다</Text>
             </View>
           )}
-        </View>
+        </Card>
       )}
 
       {/* 촬영 시작 버튼 */}
@@ -140,35 +138,20 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: UI.colors.white },
-  content: { paddingHorizontal: 24, gap: 24 },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  appTitle: { fontSize: 28, fontWeight: '700', color: UI.colors.primary },
+  content: { paddingHorizontal: UI.spacing.xxl, gap: UI.spacing.xxl },
 
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: UI.colors.white,
-    borderRadius: UI.radius.lg,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: UI.colors.border,
-    shadowColor: UI.colors.primary,
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    padding: 0,
   },
   statsCardAccent: { width: 4, backgroundColor: UI.colors.primary },
-  statsCardBody: { flex: 1, paddingVertical: 16, paddingHorizontal: 16, gap: 4 },
+  statsCardBody: { flex: 1, paddingVertical: UI.spacing.lg, paddingHorizontal: UI.spacing.lg, gap: UI.spacing.xs },
   statsLabel: { fontSize: 11, fontWeight: '600', color: UI.colors.muted, textTransform: 'uppercase', letterSpacing: 0.8 },
   statsAlbum: { fontSize: 18, fontWeight: '700', color: UI.colors.primary },
   statsCount: { fontSize: 13, color: UI.colors.muted },
 
-  section: { gap: 12 },
+  section: { gap: UI.spacing.md },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { fontSize: 15, fontWeight: '600', color: UI.colors.primary },
   seeAll: { fontSize: 13, fontWeight: '500', color: UI.colors.primary },
