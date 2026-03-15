@@ -92,23 +92,11 @@ export default function SettingsScreen() {
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>보드판 라벨</Text>
-        <Text style={styles.sectionDesc}>촬영 미리보기에 표시될 2열×4행 보드판의 각 칸 텍스트입니다.</Text>
+        <Text style={styles.sectionDesc}>보드판에 표시 될 라벨을 설정 할 수 있습니다.</Text>
 
         <View style={styles.labelTable}>
-          <View style={[styles.labelRow, styles.tableHeader]}>
-            <View style={styles.rowHeaderCell} />
-            <View style={[styles.headerCell, styles.cellDivider]}>
-              <Text style={styles.headerText}>좌측</Text>
-            </View>
-            <View style={styles.headerCell}>
-              <Text style={styles.headerText}>우측</Text>
-            </View>
-          </View>
           {[0, 1, 2, 3].map((row) => (
             <View key={row} style={[styles.labelRow, row < 3 && styles.rowBorder]}>
-              <View style={[styles.rowHeaderCell, styles.cellDivider]}>
-                <Text style={styles.rowHeaderText}>{row + 1}행</Text>
-              </View>
               {[0, 1].map((col) => {
                 const idx = row * 2 + col;
                 return (
@@ -163,32 +151,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: UI.colors.white,
   },
-  tableHeader: {
-    minHeight: 40,
-    backgroundColor: UI.colors.overlaySoft,
-    borderBottomWidth: 1,
-    borderBottomColor: UI.colors.borderStrong,
-  },
   labelRow: { flexDirection: 'row' },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: UI.colors.borderStrong },
-  rowHeaderCell: {
-    width: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  rowHeaderText: {
-    color: UI.colors.muted,
-    ...UI.typography.caption,
-  },
-  headerCell: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  headerText: {
-    color: UI.colors.primary,
-    ...UI.typography.caption,
-  },
   labelCell: {
     flex: 1,
     minHeight: 64,

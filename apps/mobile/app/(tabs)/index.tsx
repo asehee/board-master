@@ -3,11 +3,11 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Dimensions,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,8 +18,6 @@ import { TopBar } from '@/components/ui/top-bar';
 import { usePresetStore } from '@/src/stores/preset.store';
 import { UI } from '@/src/theme/tokens';
 
-const THUMB_SIZE = Math.round((Dimensions.get('window').width - 48 - 8 * 2) / 3);
-
 type Asset = MediaLibrary.Asset;
 
 export default function HomeScreen() {
@@ -28,8 +26,17 @@ export default function HomeScreen() {
   const [recentPhotos, setRecentPhotos] = useState<Asset[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { width: screenWidth } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const thumbSize = Math.floor(
+    (
+      screenWidth -
+      UI.spacing.xxl * 2 - // 화면 좌우 패딩
+      UI.spacing.xl * 2 - // Card 내부 좌우 패딩
+      UI.spacing.sm * 2 // 3개 썸네일 사이 gap 2개
+    ) / 3
+  );
 
   useEffect(() => {
     load();
@@ -104,7 +111,7 @@ export default function HomeScreen() {
           {loading ? (
             <View style={styles.thumbsRow}>
               {[0, 1, 2].map((i) => (
-                <View key={i} style={[styles.thumbPlaceholder, { width: THUMB_SIZE, height: THUMB_SIZE }]} />
+                <View key={i} style={[styles.thumbPlaceholder, { width: thumbSize, height: thumbSize }]} />
               ))}
             </View>
           ) : recentPhotos.length > 0 ? (
@@ -116,14 +123,14 @@ export default function HomeScreen() {
                   onPress={() => router.push({ pathname: '/photo-viewer', params: { uri: asset.uri } })}>
                   <Image
                     source={{ uri: asset.uri }}
-                    style={{ width: THUMB_SIZE, height: THUMB_SIZE, borderRadius: 10 }}
+                    style={{ width: thumbSize, height: thumbSize, borderRadius: UI.radius.sm }}
                     contentFit="cover"
                   />
                 </TouchableOpacity>
               ))}
             </View>
           ) : (
-            <View style={styles.emptyPhotos}>
+            <View style={[styles.emptyPhotos, { height: thumbSize }]}>
               <Text style={styles.emptyText}>촬영한 사진이 없습니다</Text>
             </View>
           )}
@@ -160,7 +167,6 @@ const styles = StyleSheet.create({
   thumbPlaceholder: { borderRadius: UI.radius.sm, backgroundColor: UI.colors.overlaySoft },
 
   emptyPhotos: {
-    height: THUMB_SIZE,
     borderRadius: UI.radius.sm,
     backgroundColor: UI.colors.overlaySoft,
     justifyContent: 'center',

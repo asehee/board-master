@@ -55,9 +55,9 @@ const LABEL_FONT_H = 14; // 라벨 텍스트 영역 높이
 const BOARD_SCALE = 0.80;
 const BOARD_INSET = (1 - BOARD_SCALE) / 2; // 0.10
 
-// 세로: 하단 보드 높이 (4행 × 52px)
-const BOARD_H_PORTRAIT = 208;
-const CELL_H_PORTRAIT = BOARD_H_PORTRAIT / 4;
+// 보드 높이: 화면 대비 최대 1/4 이하
+const BOARD_HEIGHT_RATIO = 0.22;
+const BOARD_HEIGHT_MAX_RATIO = 0.25;
 
 // 가로: 우측 보드 너비 비율
 const BOARD_W_RATIO_LANDSCAPE = 0.38;
@@ -102,13 +102,16 @@ export default function PreviewScreen() {
   }, [exifOrientation, camW, camH, width, height, isLandscape]);
 
   // 세로 모드: 보드가 하단에 떠 있음 (사진은 전체 영역)
+  const boardMaxH = totalH * BOARD_HEIGHT_MAX_RATIO;
+  const boardH_P = Math.min(totalH * BOARD_HEIGHT_RATIO, boardMaxH);
+  const cellH_P = boardH_P / 4;
   const boardW_P = width * BOARD_SCALE;              // 보드 너비 (80%)
   const boardX_P = width * BOARD_INSET;              // 좌측 여백 (10%)
-  const boardY_P = totalH - BOARD_H_PORTRAIT - totalH * BOARD_INSET; // 하단 여백 10%
+  const boardY_P = totalH - boardH_P - totalH * BOARD_INSET; // 하단 여백 10%
 
   // 가로 모드: 보드가 우측에 떠 있음 (사진은 전체 영역)
   const boardW_L = Math.round(width * BOARD_W_RATIO_LANDSCAPE); // 보드 너비
-  const boardH_L = totalH * BOARD_SCALE;             // 보드 높이 (80%)
+  const boardH_L = Math.min(totalH * BOARD_HEIGHT_RATIO, boardMaxH); // 보드 높이 (<= 1/4)
   const boardTopY_L = totalH * BOARD_INSET;          // 상단 여백 (10%)
   const boardX_L = width - boardW_L - width * 0.04; // 우측 여백 4%
   const cellH_L = boardH_L / 4;
@@ -284,20 +287,20 @@ export default function PreviewScreen() {
           <SkiaImage image={skiaPhoto} x={0} y={0} width={width} height={totalH} fit="cover" />
         )}
         {/* 보드 배경 */}
-        <Rect x={boardX_P} y={boardY_P} width={boardW_P} height={BOARD_H_PORTRAIT} color={UI.colors.white} />
+        <Rect x={boardX_P} y={boardY_P} width={boardW_P} height={boardH_P} color={UI.colors.white} />
         {/* 외곽 테두리 */}
         <Line p1={{ x: boardX_P, y: boardY_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P }} color={UI.colors.borderStrong} strokeWidth={1} />
-        <Line p1={{ x: boardX_P, y: boardY_P + BOARD_H_PORTRAIT }} p2={{ x: boardX_P + boardW_P, y: boardY_P + BOARD_H_PORTRAIT }} color={UI.colors.borderStrong} strokeWidth={1} />
-        <Line p1={{ x: boardX_P, y: boardY_P }} p2={{ x: boardX_P, y: boardY_P + BOARD_H_PORTRAIT }} color={UI.colors.borderStrong} strokeWidth={1} />
-        <Line p1={{ x: boardX_P + boardW_P, y: boardY_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P + BOARD_H_PORTRAIT }} color={UI.colors.borderStrong} strokeWidth={1} />
+        <Line p1={{ x: boardX_P, y: boardY_P + boardH_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P + boardH_P }} color={UI.colors.borderStrong} strokeWidth={1} />
+        <Line p1={{ x: boardX_P, y: boardY_P }} p2={{ x: boardX_P, y: boardY_P + boardH_P }} color={UI.colors.borderStrong} strokeWidth={1} />
+        <Line p1={{ x: boardX_P + boardW_P, y: boardY_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P + boardH_P }} color={UI.colors.borderStrong} strokeWidth={1} />
         {/* 수직 중앙선 */}
-        <Line p1={{ x: boardX_P + cellW, y: boardY_P }} p2={{ x: boardX_P + cellW, y: boardY_P + BOARD_H_PORTRAIT }} color={UI.colors.borderStrong} strokeWidth={1} />
+        <Line p1={{ x: boardX_P + cellW, y: boardY_P }} p2={{ x: boardX_P + cellW, y: boardY_P + boardH_P }} color={UI.colors.borderStrong} strokeWidth={1} />
         {/* 수평 행 구분선 */}
         {[1, 2, 3].map((i) => (
           <Line
             key={i}
-            p1={{ x: boardX_P, y: boardY_P + CELL_H_PORTRAIT * i }}
-            p2={{ x: boardX_P + boardW_P, y: boardY_P + CELL_H_PORTRAIT * i }}
+            p1={{ x: boardX_P, y: boardY_P + cellH_P * i }}
+            p2={{ x: boardX_P + boardW_P, y: boardY_P + cellH_P * i }}
             color={UI.colors.borderStrong}
             strokeWidth={1}
           />
@@ -307,7 +310,7 @@ export default function PreviewScreen() {
           const col = idx % 2;
           const row = Math.floor(idx / 2);
           const cx = boardX_P + col * cellW + CELL_PAD;
-          const cy = boardY_P + row * CELL_H_PORTRAIT;
+          const cy = boardY_P + row * cellH_P;
           return [
             <Paragraph key={`l${idx}`} paragraph={labelParas[idx]} x={cx} y={cy + 4} width={cellW - CELL_PAD * 2} />,
             <Paragraph key={`v${idx}`} paragraph={valueParas[idx]} x={cx} y={cy + LABEL_FONT_H + 6} width={cellW - CELL_PAD * 2} />,
@@ -355,7 +358,7 @@ export default function PreviewScreen() {
             left: boardX_P,
             top: boardY_P,
             width: boardW_P,
-            height: BOARD_H_PORTRAIT,
+            height: boardH_P,
             backgroundColor: UI.colors.white,
             borderWidth: 1,
             borderColor: UI.colors.borderStrong,
