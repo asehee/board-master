@@ -6,9 +6,9 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -20,17 +20,17 @@ const PAL = {
   surfaceLow: '#1c1b1b',
   surface: '#201f1f',
   surfaceHigh: '#2a2a2a',
-  surfaceHighest: '#353534',
   text: '#e5e2e1',
-  textDim: 'rgba(226,191,176,0.72)',
   textSoft: 'rgba(229,226,225,0.56)',
   primary: '#ff6b00',
   primarySoft: '#ffb693',
-  outline: 'rgba(90,65,54,0.35)',
+  border: 'rgba(169,138,125,0.25)',
 };
 
 type Album = MediaLibrary.Album;
 type Asset = MediaLibrary.Asset;
+type RootTab = 'albums' | 'recent';
+type SortMode = 'recent' | 'name';
 
 export default function GalleryScreen() {
   const [permission, requestPermission] = MediaLibrary.usePermissions();
@@ -38,16 +38,19 @@ export default function GalleryScreen() {
   const [recentPhotos, setRecentPhotos] = useState<Asset[]>([]);
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [albumPhotos, setAlbumPhotos] = useState<Asset[]>([]);
+  const [query, setQuery] = useState('');
+  const [rootTab, setRootTab] = useState<RootTab>('albums');
+  const [sortMode, setSortMode] = useState<SortMode>('recent');
   const [loading, setLoading] = useState(true);
+
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const router = useRouter();
 
   const isTablet = width >= 768;
-  const photoCardW = Math.min(260, width * 0.62);
-  const albumGridGap = 8;
-  const albumGridColumns = isTablet ? 5 : 3;
-  const albumCellW = Math.floor((width - 24 * 2 - albumGridGap * (albumGridColumns - 1)) / albumGridColumns);
+  const photoGridGap = 8;
+  const photoColumns = isTablet ? 5 : 3;
+  const photoCellW = Math.floor((width - 24 * 2 - photoGridGap * (photoColumns - 1)) / photoColumns);
 
   const fetchRoot = useCallback(async () => {
     setLoading(true);
@@ -56,11 +59,10 @@ export default function GalleryScreen() {
         MediaLibrary.getAlbumsAsync({ includeSmartAlbums: false }),
         MediaLibrary.getAssetsAsync({
           mediaType: 'photo',
-          first: 30,
+          first: 200,
           sortBy: [['creationTime', false]],
         }),
       ]);
-
       const nonEmpty = albumResult.filter((a) => a.assetCount > 0);
       setAlbums(nonEmpty);
       setRecentPhotos(recentResult.assets);
@@ -76,7 +78,7 @@ export default function GalleryScreen() {
       const result = await MediaLibrary.getAssetsAsync({
         album,
         mediaType: 'photo',
-        first: 200,
+        first: 300,
         sortBy: [['creationTime', false]],
       });
       setAlbumPhotos(result.assets);
@@ -93,21 +95,17 @@ export default function GalleryScreen() {
     }
   }, [permission, fetchRoot]);
 
-  const totalFiles = useMemo(
-    () => albums.reduce((sum, album) => sum + (album.assetCount ?? 0), 0),
-    [albums]
-  );
-  const recentToday = useMemo(() => {
-    const now = new Date();
-    return recentPhotos.filter((p) => {
-      const d = new Date(p.creationTime);
-      return (
-        d.getFullYear() === now.getFullYear() &&
-        d.getMonth() === now.getMonth() &&
-        d.getDate() === now.getDate()
-      );
-    }).length;
-  }, [recentPhotos]);
+  const filteredAlbums = useMemo(() => {
+    const keyword = query.trim().toLowerCase();
+    const base = keyword
+      ? albums.filter((album) => album.title.toLowerCase().includes(keyword))
+      : albums;
+
+    if (sortMode === 'name') {
+      return [...base].sort((a, b) => a.title.localeCompare(b.title));
+    }
+    return [...base].sort((a, b) => (b.assetCount ?? 0) - (a.assetCount ?? 0));
+  }, [albums, query, sortMode]);
 
   if (!permission) {
     return (
@@ -121,55 +119,51 @@ export default function GalleryScreen() {
     return (
       <View style={[styles.centered, { paddingTop: insets.top + 24 }]}>
         <Text style={styles.emptyTitle}>사진 접근 권한이 필요합니다</Text>
-        <Text style={styles.emptyDesc}>갤러리 표시를 위해 사진 라이브러리 권한을 허용해주세요.</Text>
-        <Pressable style={styles.permissionBtn} onPress={requestPermission}>
-          <Text style={styles.permissionBtnText}>권한 허용</Text>
+        <Text style={styles.emptyDesc}>갤러리를 사용하려면 사진 라이브러리 권한이 필요합니다.</Text>
+        <Pressable style={styles.primaryBtn} onPress={requestPermission}>
+          <Text style={styles.primaryBtnText}>권한 허용</Text>
         </Pressable>
-      </View>
-    );
-  }
-
-  if (loading) {
-    return (
-      <View style={[styles.centered, { paddingTop: insets.top + 24 }]}>
-        <ActivityIndicator size="large" color={PAL.primary} />
       </View>
     );
   }
 
   if (selectedAlbum) {
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={[styles.container, { paddingTop: insets.top + 6 }]}>
         <View style={styles.appBar}>
           <View style={styles.barLeft}>
             <Pressable style={styles.iconBtn} onPress={() => setSelectedAlbum(null)}>
               <MaterialIcons name="arrow-back" size={21} color={PAL.primary} />
             </Pressable>
-            <Text style={styles.brandTitle} numberOfLines={1}>
-              {selectedAlbum.title}
-            </Text>
+            <View>
+              <Text style={styles.brandTitle} numberOfLines={1}>{selectedAlbum.title}</Text>
+              <Text style={styles.subTitle}>{albumPhotos.length} photos</Text>
+            </View>
           </View>
         </View>
 
-        {albumPhotos.length === 0 ? (
+        {loading ? (
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={PAL.primary} />
+          </View>
+        ) : albumPhotos.length === 0 ? (
           <View style={styles.centered}>
             <Text style={styles.emptyTitle}>사진이 없습니다</Text>
           </View>
         ) : (
           <FlatList
+            key={`album-detail-${selectedAlbum.id}-${photoColumns}`}
             data={albumPhotos}
             keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.albumGridWrap}
-            numColumns={albumGridColumns}
-            columnWrapperStyle={{ gap: albumGridGap }}
-            ItemSeparatorComponent={() => <View style={{ height: albumGridGap }} />}
+            contentContainerStyle={styles.gridWrap}
+            numColumns={photoColumns}
+            columnWrapperStyle={{ gap: photoGridGap }}
+            ItemSeparatorComponent={() => <View style={{ height: photoGridGap }} />}
             renderItem={({ item }) => (
-              <Pressable
-                onPress={() => router.push({ pathname: '/photo-viewer', params: { uri: item.uri } })}
-              >
+              <Pressable onPress={() => router.push({ pathname: '/photo-viewer', params: { uri: item.uri } })}>
                 <Image
                   source={{ uri: item.uri }}
-                  style={{ width: albumCellW, height: albumCellW, borderRadius: 6 }}
+                  style={{ width: photoCellW, height: photoCellW, borderRadius: 6 }}
                   contentFit="cover"
                 />
               </Pressable>
@@ -181,165 +175,113 @@ export default function GalleryScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.appBar, { paddingTop: insets.top + 6 }]}>
+    <View style={[styles.container, { paddingTop: insets.top + 6 }]}>
+      <View style={styles.appBar}>
         <View style={styles.barLeft}>
-          <Pressable style={styles.iconBtn}>
-            <MaterialIcons name="menu" size={22} color={PAL.primary} />
-          </Pressable>
-          <Text style={styles.brandTitle}>BuildTrack</Text>
-        </View>
-        <View style={styles.barRight}>
-          <Pressable style={styles.iconBtn}>
-            <MaterialIcons name="search" size={20} color={PAL.text} />
-          </Pressable>
-          <View style={styles.avatar}>
-            <MaterialIcons name="person" size={16} color={PAL.text} />
+          <View style={styles.iconBtn}>
+            <MaterialIcons name="grid-view" size={21} color={PAL.primary} />
+          </View>
+          <View>
+            <Text style={styles.brandTitle}>Archive</Text>
+            <Text style={styles.subTitle}>{albums.length} albums</Text>
           </View>
         </View>
       </View>
 
-      <ScrollView
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 110 }]}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.heroRow}>
-          <View style={styles.heroCard}>
-            <Text style={styles.heroCaption}>ACTIVE SITE</Text>
-            <Text style={styles.heroTitle}>East Wing Expansion</Text>
-            <Text style={styles.heroDesc}>Phase 2: Structural audit and electrical rough-in.</Text>
-            <View style={styles.progressRow}>
-              <Text style={styles.progressPct}>64%</Text>
-              <View style={styles.progressTrack}>
-                <View style={styles.progressFill} />
-              </View>
-            </View>
-          </View>
+      <View style={styles.searchRow}>
+        <MaterialIcons name="search" size={18} color={PAL.textSoft} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="앨범 이름 검색"
+          placeholderTextColor={PAL.textSoft}
+          value={query}
+          onChangeText={setQuery}
+        />
+        {!!query && (
+          <Pressable onPress={() => setQuery('')}>
+            <MaterialIcons name="close" size={18} color={PAL.textSoft} />
+          </Pressable>
+        )}
+      </View>
 
-          <View style={styles.alertCard}>
-            <Text style={styles.alertCaption}>Alerts</Text>
-            <Text style={styles.alertTitle}>Safety Logs Due</Text>
-            <View style={styles.alertBottom}>
-              <Text style={styles.alertCount}>03</Text>
-              <MaterialIcons name="report-problem" size={32} color={PAL.primary} />
-            </View>
-          </View>
+      <View style={styles.filterRow}>
+        <Pressable
+          style={[styles.filterChip, rootTab === 'albums' && styles.filterChipActive]}
+          onPress={() => setRootTab('albums')}>
+          <Text style={[styles.filterText, rootTab === 'albums' && styles.filterTextActive]}>Albums</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.filterChip, rootTab === 'recent' && styles.filterChipActive]}
+          onPress={() => setRootTab('recent')}>
+          <Text style={[styles.filterText, rootTab === 'recent' && styles.filterTextActive]}>Recent</Text>
+        </Pressable>
+        <Pressable
+          style={styles.sortBtn}
+          onPress={() => setSortMode((prev) => (prev === 'recent' ? 'name' : 'recent'))}>
+          <MaterialIcons name="sort" size={16} color={PAL.text} />
+          <Text style={styles.sortText}>{sortMode === 'recent' ? 'Recent' : 'Name'}</Text>
+        </Pressable>
+      </View>
+
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={PAL.primary} />
         </View>
-
-        <View style={styles.metricRow}>
-          <MetricCard label="Total Files" value={totalFiles.toLocaleString()} suffix="" />
-          <MetricCard label="Recent Uploads" value={String(recentToday)} suffix="Today" />
-          <MetricCard label="Sync Status" value="Uptodate" suffix="" icon="cloud-done" />
-        </View>
-
-        <SectionHeader title="Recent Photos" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentRow}>
-          {(recentPhotos.length ? recentPhotos : Array.from({ length: 4 }, () => null)).map(
-            (item: Asset | null, idx) => (
-            <Pressable
-              key={item ? item.id : `ph-${idx}`}
-              style={[styles.recentCard, { width: photoCardW }]}
-              onPress={() =>
-                item
-                  ? router.push({ pathname: '/photo-viewer', params: { uri: item.uri } })
-                  : undefined
-              }
-            >
-              {item ? (
-                <Image source={{ uri: item.uri }} style={styles.recentImage} contentFit="cover" />
-              ) : (
-                <View style={styles.recentPlaceholder}>
-                  <MaterialIcons name="image" size={24} color={PAL.textSoft} />
+      ) : rootTab === 'albums' ? (
+        filteredAlbums.length === 0 ? (
+          <View style={styles.centered}>
+            <Text style={styles.emptyTitle}>앨범이 없습니다</Text>
+            <Text style={styles.emptyDesc}>촬영 후 저장하면 앨범이 표시됩니다.</Text>
+          </View>
+        ) : (
+          <FlatList
+            key="album-list-2col"
+            data={filteredAlbums}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            columnWrapperStyle={styles.albumRow}
+            contentContainerStyle={[styles.albumWrap, { paddingBottom: insets.bottom + 110 }]}
+            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+            renderItem={({ item }) => (
+              <Pressable
+                style={styles.albumCard}
+                onPress={() => {
+                  setSelectedAlbum(item);
+                  fetchAlbumPhotos(item);
+                }}>
+                <View style={styles.albumTop}>
+                  <MaterialIcons name="folder" size={36} color={PAL.primary} />
+                  <Text style={styles.albumCount}>{item.assetCount} items</Text>
                 </View>
-              )}
-            </Pressable>
-            )
-          )}
-        </ScrollView>
-
-        <SectionHeader title="Folders" />
-        <View style={[styles.folderGrid, { gap: 12 }]}>
-          {albums.slice(0, 8).map((album) => (
-            <Pressable
-              key={album.id}
-              style={[styles.folderCard, { width: `48%` }]}
-              onPress={() => {
-                setSelectedAlbum(album);
-                fetchAlbumPhotos(album);
-              }}
-            >
-              <View style={styles.folderTop}>
-                <MaterialIcons name="folder" size={36} color={PAL.primary} />
-                <Text style={styles.folderCount}>{album.assetCount} items</Text>
-              </View>
-              <Text style={styles.folderName} numberOfLines={1}>
-                {album.title}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <View style={styles.statHead}>
-              <MaterialIcons name="cloud-upload" size={18} color={PAL.primarySoft} />
-              <Text style={styles.statTitle}>Sync Status</Text>
-            </View>
-            <Text style={styles.statBig}>All Up to Date</Text>
-            <Text style={styles.statDesc}>Next backup scheduled 18:00 local time.</Text>
-          </View>
-          <View style={styles.statCard}>
-            <View style={styles.statHead}>
-              <MaterialIcons name="storage" size={18} color={PAL.primarySoft} />
-              <Text style={styles.statTitle}>Site Storage</Text>
-            </View>
-            <Text style={styles.statBig}>4.2 GB</Text>
-            <Text style={styles.statDesc}>of 10 GB</Text>
-            <View style={styles.storageTrack}>
-              <View style={styles.storageFill} />
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-
-    </View>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  suffix,
-  icon,
-}: {
-  label: string;
-  value: string;
-  suffix: string;
-  icon?: keyof typeof MaterialIcons.glyphMap;
-}) {
-  return (
-    <View style={styles.metricCard}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      {icon ? (
-        <View style={styles.metricIconRow}>
-          <MaterialIcons name={icon} size={15} color={PAL.primary} />
-          <Text style={styles.metricValueSmall}>{value}</Text>
+                <Text style={styles.albumName} numberOfLines={1}>{item.title}</Text>
+              </Pressable>
+            )}
+          />
+        )
+      ) : recentPhotos.length === 0 ? (
+        <View style={styles.centered}>
+          <Text style={styles.emptyTitle}>최근 사진이 없습니다</Text>
         </View>
       ) : (
-        <View style={styles.metricValueRow}>
-          <Text style={styles.metricValue}>{value}</Text>
-          {suffix ? <Text style={styles.metricSuffix}>{suffix}</Text> : null}
-        </View>
+        <FlatList
+          key={`recent-grid-${photoColumns}`}
+          data={recentPhotos}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={[styles.gridWrap, { paddingBottom: insets.bottom + 110 }]}
+          numColumns={photoColumns}
+          columnWrapperStyle={{ gap: photoGridGap }}
+          ItemSeparatorComponent={() => <View style={{ height: photoGridGap }} />}
+          renderItem={({ item }) => (
+            <Pressable onPress={() => router.push({ pathname: '/photo-viewer', params: { uri: item.uri } })}>
+              <Image
+                source={{ uri: item.uri }}
+                style={{ width: photoCellW, height: photoCellW, borderRadius: 6 }}
+                contentFit="cover"
+              />
+            </Pressable>
+          )}
+        />
       )}
-    </View>
-  );
-}
-
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <View style={styles.sectionHead}>
-      <View style={styles.sectionBar} />
-      <Text style={styles.sectionTitle}>{title}</Text>
     </View>
   );
 }
@@ -352,31 +294,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
-    gap: 12,
+    gap: 10,
   },
   emptyTitle: { color: PAL.text, fontSize: 18, fontWeight: '700' },
   emptyDesc: { color: PAL.textSoft, fontSize: 14, textAlign: 'center' },
-  permissionBtn: {
-    marginTop: 8,
-    height: 46,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    backgroundColor: PAL.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  permissionBtnText: { color: PAL.bg, fontSize: 14, fontWeight: '800' },
 
   appBar: {
-    backgroundColor: PAL.bg,
     paddingHorizontal: 16,
-    minHeight: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    minHeight: 56,
+    justifyContent: 'center',
   },
-  barLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
-  barRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  barLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   iconBtn: {
     width: 36,
     height: 36,
@@ -385,137 +313,83 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  brandTitle: {
-    color: PAL.primary,
-    fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-  avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: PAL.surfaceHighest,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  brandTitle: { color: PAL.primary, fontSize: 22, fontWeight: '900', textTransform: 'uppercase' },
+  subTitle: { color: PAL.textSoft, fontSize: 11, fontWeight: '600' },
 
-  scrollContent: { paddingHorizontal: 16, paddingTop: 12, gap: 20 },
-  heroRow: { gap: 12 },
-  heroCard: {
-    backgroundColor: PAL.surfaceLow,
-    borderRadius: 12,
-    padding: 16,
-    minHeight: 172,
-  },
-  heroCaption: {
-    color: PAL.primarySoft,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.1,
-    marginBottom: 4,
-  },
-  heroTitle: {
-    color: PAL.text,
-    fontSize: 30,
-    fontWeight: '900',
-    lineHeight: 34,
-    textTransform: 'uppercase',
-    marginBottom: 6,
-  },
-  heroDesc: { color: PAL.textDim, fontSize: 13, marginBottom: 14 },
-  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  progressPct: { color: PAL.text, fontSize: 20, fontWeight: '800' },
-  progressTrack: { flex: 1, height: 10, borderRadius: 99, backgroundColor: PAL.surfaceHighest },
-  progressFill: { width: '64%', height: 10, borderRadius: 99, backgroundColor: PAL.primary },
-
-  alertCard: {
-    backgroundColor: PAL.surfaceHigh,
-    borderRadius: 12,
-    padding: 16,
-    borderBottomColor: PAL.primary,
-    borderBottomWidth: 4,
-  },
-  alertCaption: {
-    color: PAL.textSoft,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  alertTitle: { color: PAL.text, fontSize: 18, fontWeight: '800', marginTop: 4 },
-  alertBottom: { marginTop: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  alertCount: { color: PAL.primarySoft, fontSize: 34, fontWeight: '900' },
-
-  metricRow: { flexDirection: 'row', gap: 8 },
-  metricCard: { flex: 1, backgroundColor: PAL.surfaceLow, borderRadius: 10, padding: 12, minHeight: 84 },
-  metricLabel: {
-    color: PAL.textSoft,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: 6,
-  },
-  metricValueRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
-  metricValue: { color: PAL.text, fontSize: 24, fontWeight: '900', lineHeight: 28 },
-  metricSuffix: { color: PAL.primary, fontSize: 11, fontWeight: '800', marginBottom: 3 },
-  metricIconRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  metricValueSmall: { color: PAL.text, fontSize: 14, fontWeight: '700' },
-
-  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 2 },
-  sectionBar: { width: 4, height: 20, backgroundColor: PAL.primary, borderRadius: 2 },
-  sectionTitle: { color: PAL.text, fontSize: 24, fontWeight: '900', textTransform: 'uppercase' },
-
-  recentRow: { gap: 12, paddingRight: 4 },
-  recentCard: {
-    aspectRatio: 4 / 5,
-    borderRadius: 12,
-    backgroundColor: PAL.surfaceHigh,
-    overflow: 'hidden',
-  },
-  recentImage: { width: '100%', height: '100%' },
-  recentPlaceholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: PAL.surfaceLow,
-  },
-
-  folderGrid: {
+  searchRow: {
+    marginHorizontal: 16,
+    marginTop: 6,
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: PAL.surface,
+    borderWidth: 1,
+    borderColor: PAL.border,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    height: 44,
   },
-  folderCard: {
+  searchInput: { flex: 1, color: PAL.text, fontSize: 14, fontWeight: '500' },
+
+  filterRow: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  filterChip: {
+    height: 34,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    backgroundColor: PAL.surface,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: PAL.border,
+  },
+  filterChipActive: { backgroundColor: PAL.primary },
+  filterText: { color: PAL.text, fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
+  filterTextActive: { color: '#131313' },
+  sortBtn: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: PAL.surfaceLow,
+    borderWidth: 1,
+    borderColor: PAL.border,
+  },
+  sortText: { color: PAL.text, fontSize: 12, fontWeight: '700' },
+
+  albumWrap: { paddingHorizontal: 16 },
+  albumRow: { justifyContent: 'space-between' },
+  albumCard: {
+    width: '48.5%',
     backgroundColor: PAL.surfaceLow,
     borderRadius: 12,
     padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(90,65,54,0.18)',
     minHeight: 120,
   },
-  folderTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  folderCount: { color: PAL.textSoft, fontSize: 11, fontWeight: '700' },
-  folderName: { color: PAL.text, fontSize: 14, fontWeight: '800', textTransform: 'uppercase' },
+  albumTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  albumCount: { color: PAL.textSoft, fontSize: 11, fontWeight: '700' },
+  albumName: { color: PAL.text, fontSize: 14, fontWeight: '800' },
 
-  statsGrid: { gap: 12 },
-  statCard: {
-    backgroundColor: '#0e0e0e',
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 2,
-    borderLeftColor: PAL.outline,
-  },
-  statHead: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 8 },
-  statTitle: { color: PAL.text, fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
-  statBig: { color: PAL.text, fontSize: 30, fontWeight: '900' },
-  statDesc: { color: PAL.textSoft, fontSize: 12, marginTop: 2 },
-  storageTrack: { marginTop: 10, backgroundColor: PAL.surfaceHighest, height: 6, borderRadius: 999 },
-  storageFill: { width: '42%', height: 6, borderRadius: 999, backgroundColor: PAL.primarySoft },
+  gridWrap: { paddingHorizontal: 24, paddingBottom: 40 },
 
-  albumGridWrap: {
-    paddingHorizontal: 24,
-    paddingTop: 10,
-    paddingBottom: 40,
+  primaryBtn: {
+    marginTop: 8,
+    height: 46,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: PAL.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  primaryBtnText: { color: PAL.bg, fontSize: 14, fontWeight: '800' },
 });

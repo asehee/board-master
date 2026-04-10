@@ -94,12 +94,13 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      <CameraView
-        ref={cameraRef}
-        style={styles.camera}
-        facing="back"
-        flash={flashMode}
-      >
+      <View style={styles.cameraStage}>
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          facing="back"
+          flash={flashMode}
+        />
         <CameraTopBar topInset={insets.top} onBack={() => router.back()} />
         <CameraOverlay
           topInset={insets.top}
@@ -113,7 +114,7 @@ export default function CameraScreen() {
           isTaking={isTaking}
           onCapture={handleCapture}
         />
-      </CameraView>
+      </View>
     </View>
   );
 }
@@ -126,6 +127,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: CAMERA_PALETTE.background,
   },
+  cameraStage: { flex: 1 },
   camera: { flex: 1 },
 
   permissionContainer: {

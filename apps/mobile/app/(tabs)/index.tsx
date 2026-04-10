@@ -1,5 +1,4 @@
 import * as MediaLibrary from 'expo-media-library';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -55,7 +54,7 @@ export default function HomeScreen() {
         album,
         mediaType: 'photo',
         sortBy: [['creationTime', false]],
-        first: 6,
+        first: 50,
       });
       setRecentPhotos(result.assets);
       setTotalCount(result.totalCount);
@@ -82,6 +81,15 @@ export default function HomeScreen() {
         d.getDate() === now.getDate()
       );
     }).length;
+  }, [recentPhotos]);
+
+  const lastCaptureText = useMemo(() => {
+    const latest = recentPhotos[0];
+    if (!latest?.creationTime) return 'No activity';
+    const d = new Date(latest.creationTime);
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${d.getMonth() + 1}/${d.getDate()} ${hh}:${mm}`;
   }, [recentPhotos]);
 
   return (
@@ -123,41 +131,49 @@ export default function HomeScreen() {
             <Text style={styles.metricLabel}>Recent Uploads</Text>
             <Text style={styles.metricValue}>{todayCount}</Text>
           </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Last Capture</Text>
+            <Text style={styles.metricValueSmall}>{lastCaptureText}</Text>
+          </View>
         </View>
 
         <View style={styles.sectionHead}>
           <View style={styles.sectionBar} />
-          <Text style={styles.sectionTitle}>Recent Photos</Text>
-          <Pressable onPress={() => router.push('/(tabs)/gallery')}>
-            <Text style={styles.viewAll}>View All</Text>
-          </Pressable>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
         </View>
 
         {loading ? (
           <View style={styles.loadingWrap}>
             <ActivityIndicator size="small" color={PAL.primary} />
           </View>
-        ) : recentPhotos.length > 0 ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentRow}>
-            {recentPhotos.map((asset) => (
-              <Pressable
-                key={asset.id}
-                style={styles.photoCard}
-                onPress={() => router.push({ pathname: '/photo-viewer', params: { uri: asset.uri } })}>
-                <Image source={{ uri: asset.uri }} style={styles.photo} contentFit="cover" />
-              </Pressable>
-            ))}
-          </ScrollView>
         ) : (
-          <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>아직 저장된 사진이 없습니다.</Text>
+          <View style={styles.actionGrid}>
+            <Pressable style={styles.captureBtn} onPress={() => router.push('/camera')}>
+              <MaterialIcons name="photo-camera" size={20} color="#131313" />
+              <Text style={styles.captureText}>Start Capture</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryBtn} onPress={() => router.push('/(tabs)/gallery')}>
+              <MaterialIcons name="history" size={20} color={PAL.text} />
+              <Text style={styles.secondaryText}>Continue Edit</Text>
+            </Pressable>
           </View>
         )}
 
-        <Pressable style={styles.captureBtn} onPress={() => router.push('/camera')}>
-          <MaterialIcons name="photo-camera" size={20} color="#131313" />
-          <Text style={styles.captureText}>Start Capture</Text>
-        </Pressable>
+        <View style={styles.statusCard}>
+          <Text style={styles.statusTitle}>Today Status</Text>
+          <View style={styles.statusRow}>
+            <MaterialIcons name="check-circle" size={16} color={PAL.primarySoft} />
+            <Text style={styles.statusText}>Saved photos: {todayCount}</Text>
+          </View>
+          <View style={styles.statusRow}>
+            <MaterialIcons name="folder" size={16} color={PAL.primarySoft} />
+            <Text style={styles.statusText}>Target album: {albumName}</Text>
+          </View>
+          <View style={styles.statusRow}>
+            <MaterialIcons name="collections" size={16} color={PAL.primarySoft} />
+            <Text style={styles.statusText}>Total archive: {totalCount}</Text>
+          </View>
+        </View>
       </View>
     </ScrollView>
   );
@@ -199,28 +215,18 @@ const styles = StyleSheet.create({
   heroProgress: { color: PAL.text, fontSize: 20, fontWeight: '900' },
   progressTrack: { flex: 1, height: 10, borderRadius: 99, backgroundColor: PAL.surfaceHigh },
   progressFill: { width: '64%', height: 10, borderRadius: 99, backgroundColor: PAL.primary },
-  metricRow: { flexDirection: 'row', gap: 10 },
-  metricCard: { flex: 1, backgroundColor: PAL.surfaceLow, borderRadius: 10, padding: 12 },
+  metricRow: { flexDirection: 'row', gap: 8 },
+  metricCard: { flex: 1, backgroundColor: PAL.surfaceLow, borderRadius: 10, padding: 10 },
   metricLabel: { color: PAL.textSoft, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
   metricValue: { color: PAL.text, fontSize: 24, fontWeight: '900', marginTop: 4 },
+  metricValueSmall: { color: PAL.text, fontSize: 14, fontWeight: '800', marginTop: 8 },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 4 },
   sectionBar: { width: 4, height: 20, backgroundColor: PAL.primary, borderRadius: 2 },
   sectionTitle: { color: PAL.text, fontSize: 22, fontWeight: '900', textTransform: 'uppercase', flex: 1 },
-  viewAll: { color: PAL.primary, fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
   loadingWrap: { backgroundColor: PAL.surfaceLow, borderRadius: 12, paddingVertical: 28, alignItems: 'center' },
-  recentRow: { gap: 10, paddingRight: 8 },
-  photoCard: { width: 136, aspectRatio: 4 / 5, borderRadius: 10, overflow: 'hidden', backgroundColor: PAL.surface },
-  photo: { width: '100%', height: '100%' },
-  emptyBox: {
-    backgroundColor: PAL.surfaceLow,
-    borderRadius: 12,
-    minHeight: 132,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: { color: PAL.textSoft, fontSize: 13 },
+  actionGrid: { flexDirection: 'row', gap: 10 },
   captureBtn: {
-    marginTop: 4,
+    flex: 1,
     height: 52,
     borderRadius: 10,
     backgroundColor: PAL.primary,
@@ -230,4 +236,33 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   captureText: { color: '#131313', fontSize: 14, fontWeight: '900', textTransform: 'uppercase' },
+  secondaryBtn: {
+    flex: 1,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: PAL.surface,
+    borderWidth: 1,
+    borderColor: PAL.textSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  secondaryText: { color: PAL.text, fontSize: 13, fontWeight: '800', textTransform: 'uppercase' },
+  statusCard: {
+    backgroundColor: PAL.surfaceLow,
+    borderRadius: 12,
+    padding: 14,
+    gap: 8,
+  },
+  statusTitle: {
+    color: PAL.primarySoft,
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 2,
+  },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  statusText: { color: PAL.text, fontSize: 13, fontWeight: '600' },
 });
