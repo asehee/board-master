@@ -4,7 +4,7 @@
  * 역할:
  *   1. 앱 최초 진입 시 세션 복원이 끝날 때까지 로딩 스피너 표시 (빈 화면 방지)
  *   2. 세션 확인 완료 후 적절한 화면으로 Redirect
- *      - authenticated   → /(tabs)       카메라 화면
+ *      - authenticated   → /(tabs)/gallery  갤러리 화면
  *      - unauthenticated → /(auth)/login  로그인 화면
  *
  * 주의: 로그아웃/세션 만료 가드는 _layout.tsx 에서 담당.
@@ -17,7 +17,7 @@ export default function Index() {
   const { status } = useAuthStore();
 
   if (status === 'authenticated') {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/(tabs)/gallery" />;
   }
 
   if (status === 'unauthenticated' || status === 'error') {

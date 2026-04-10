@@ -4,17 +4,17 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { Button } from '@/components/ui/button';
 import { usePresetStore } from '@/src/stores/preset.store';
-import { UI } from '@/src/theme/tokens';
 
 export default function CameraScreen() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -23,7 +23,9 @@ export default function CameraScreen() {
   const [isTaking, setIsTaking] = useState(false);
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { albumName, load } = usePresetStore();
+  const { albumName, boardLabels, load } = usePresetStore();
+  const [gridOn, setGridOn] = useState(true);
+  const [flashMode, setFlashMode] = useState<'off' | 'on'>('off');
 
   useEffect(() => {
     load();
@@ -32,7 +34,7 @@ export default function CameraScreen() {
   if (!cameraPermission || !mediaPermission) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={UI.colors.primary} />
+        <ActivityIndicator size="large" color={PALETTE.primaryContainer} />
       </View>
     );
   }
@@ -90,106 +92,263 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing="back">
-        {/* 상단: 닫기 + 앨범 배지 */}
-        <View style={[styles.topBar, { paddingTop: insets.top + 12 }]}>
-          <TouchableOpacity
-            style={styles.closeBtn}
-            onPress={() => router.back()}
-            hitSlop={12}>
-            <Text style={styles.closeBtnText}>✕</Text>
-          </TouchableOpacity>
-          <Text style={styles.albumBadge}>{albumName}</Text>
-          <View style={[styles.closeBtn, styles.closeBtnGhost]} />
+      <CameraView
+        ref={cameraRef}
+        style={styles.camera}
+        facing="back"
+        flash={flashMode}
+      >
+        <View style={[styles.topBar, { paddingTop: insets.top + 10 }]}>
+          <View style={styles.topBarLeft}>
+            <Pressable style={styles.iconBtn} onPress={() => router.back()}>
+              <MaterialIcons name="menu" size={22} color={PALETTE.primaryContainer} />
+            </Pressable>
+            <Text style={styles.brandText}>BuildTrack</Text>
+          </View>
+          <View style={styles.avatarWrap}>
+            <MaterialIcons name="person" size={20} color={PALETTE.onSurface} />
+          </View>
         </View>
 
-        {/* 하단 셔터 */}
-        <View style={[styles.controls, { paddingBottom: insets.bottom + 20 }]}>
-          <TouchableOpacity
+        <View style={styles.statusWrap}>
+          <View style={styles.statusDot} />
+          <Text style={styles.statusText}>5G LIVE CONNECTION</Text>
+        </View>
+
+        {gridOn && (
+          <View style={styles.viewFinder}>
+            <View style={[styles.corner, styles.cornerTL]} />
+            <View style={[styles.corner, styles.cornerTR]} />
+            <View style={[styles.corner, styles.cornerBL]} />
+            <View style={[styles.corner, styles.cornerBR]} />
+          </View>
+        )}
+
+        <View style={styles.sideControls}>
+          <Pressable style={styles.sideControlBtn}>
+            <MaterialIcons name="zoom-in" size={22} color={PALETTE.onSurface} />
+          </Pressable>
+          <Pressable
+            style={styles.sideControlBtn}
+            onPress={() => setFlashMode((prev) => (prev === 'off' ? 'on' : 'off'))}
+          >
+            <MaterialIcons
+              name={flashMode === 'on' ? 'flash-on' : 'flash-off'}
+              size={22}
+              color={PALETTE.onSurface}
+            />
+          </Pressable>
+          <Pressable style={styles.sideControlBtn} onPress={() => setGridOn((prev) => !prev)}>
+            <MaterialIcons
+              name={gridOn ? 'grid-on' : 'grid-off'}
+              size={22}
+              color={PALETTE.onSurface}
+            />
+          </Pressable>
+        </View>
+
+        <View style={[styles.bottomOverlay, { paddingBottom: insets.bottom + 20 }]}>
+          <View style={styles.dataCard}>
+            <View style={styles.dataGrid}>
+              {[0, 1, 2, 3].map((idx) => (
+                <View key={idx} style={styles.dataCell}>
+                  <Text style={styles.dataLabel}>{boardLabels[idx] ?? `Label ${idx + 1}`}</Text>
+                  <Text style={styles.dataValue}>{idx === 0 ? albumName : '대기 중'}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <Pressable
             style={[styles.shutter, isTaking && styles.shutterDisabled]}
             onPress={handleCapture}
             disabled={isTaking}
-            activeOpacity={0.7}>
+          >
             {isTaking ? (
-              <ActivityIndicator color={UI.colors.primary} size="small" />
+              <ActivityIndicator color={PALETTE.onPrimaryContainer} size="small" />
             ) : (
-              <View style={styles.shutterInner} />
+              <MaterialIcons name="photo-camera" size={34} color={PALETTE.onPrimaryContainer} />
             )}
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </CameraView>
     </View>
   );
 }
 
+const PALETTE = {
+  background: '#131313',
+  surface: 'rgba(19,19,19,0.9)',
+  surfaceStrong: 'rgba(0,0,0,0.45)',
+  surfaceChip: 'rgba(53,53,52,0.9)',
+  borderSoft: 'rgba(255,255,255,0.12)',
+  primaryContainer: '#ff6b00',
+  onPrimaryContainer: '#351000',
+  onSurface: '#e5e2e1',
+  onSurfaceDim: 'rgba(229,226,225,0.7)',
+  live: '#22c55e',
+};
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: UI.colors.primary },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: UI.colors.white },
+  container: { flex: 1, backgroundColor: PALETTE.background },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: PALETTE.background },
   camera: { flex: 1 },
 
   topBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
+    height: 64,
+    backgroundColor: PALETTE.surface,
   },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: UI.colors.overlayStrong,
+  topBarLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    backgroundColor: PALETTE.surfaceChip,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  closeBtnGhost: { opacity: 0 },
-  closeBtnText: { color: UI.colors.white, fontSize: 16, fontWeight: '600' },
-  albumBadge: {
-    color: UI.colors.white,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 2,
+  brandText: {
+    color: PALETTE.primaryContainer,
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: 0.6,
     textTransform: 'uppercase',
-    backgroundColor: UI.colors.overlayStrong,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: UI.radius.pill,
-    overflow: 'hidden',
+  },
+  avatarWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: PALETTE.surfaceChip,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
-  controls: {
+  statusWrap: {
+    position: 'absolute',
+    top: 84,
+    left: 16,
+    zIndex: 10,
+    backgroundColor: PALETTE.surfaceStrong,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  statusDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: PALETTE.live },
+  statusText: {
+    color: PALETTE.onSurface,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+  },
+
+  viewFinder: {
+    position: 'absolute',
+    top: 104,
+    left: 22,
+    right: 22,
+    bottom: 188,
+    borderWidth: 1,
+    borderColor: PALETTE.borderSoft,
+    zIndex: 2,
+  },
+  corner: {
+    position: 'absolute',
+    width: 18,
+    height: 18,
+    borderColor: 'rgba(255,107,0,0.8)',
+  },
+  cornerTL: { left: -1, top: -1, borderLeftWidth: 2, borderTopWidth: 2 },
+  cornerTR: { right: -1, top: -1, borderRightWidth: 2, borderTopWidth: 2 },
+  cornerBL: { left: -1, bottom: -1, borderLeftWidth: 2, borderBottomWidth: 2 },
+  cornerBR: { right: -1, bottom: -1, borderRightWidth: 2, borderBottomWidth: 2 },
+
+  sideControls: {
+    position: 'absolute',
+    right: 14,
+    top: '40%',
+    zIndex: 10,
+    gap: 10,
+  },
+  sideControlBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: PALETTE.surfaceStrong,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  bottomOverlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    alignItems: 'center',
+    zIndex: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 12,
   },
+  dataCard: {
+    flex: 1,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: PALETTE.surfaceStrong,
+    padding: 12,
+  },
+  dataGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: 10,
+  },
+  dataCell: { width: '50%' },
+  dataLabel: {
+    color: PALETTE.onSurfaceDim,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    marginBottom: 3,
+  },
+  dataValue: { color: PALETTE.onSurface, fontSize: 13, fontWeight: '700' },
+
   shutter: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    borderWidth: 4,
-    borderColor: UI.colors.white,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: UI.colors.whiteSoft,
+    backgroundColor: PALETTE.primaryContainer,
   },
   shutterDisabled: { opacity: 0.4 },
-  shutterInner: { width: 58, height: 58, borderRadius: 29, backgroundColor: UI.colors.white },
 
   permissionContainer: {
     flex: 1,
     paddingHorizontal: 28,
     paddingBottom: 48,
-    backgroundColor: UI.colors.white,
+    backgroundColor: PALETTE.background,
     gap: 28,
   },
   permissionTitle: {
     fontSize: 26,
     fontWeight: '700',
-    color: UI.colors.primary,
+    color: PALETTE.primaryContainer,
     textAlign: 'center',
     marginBottom: 4,
   },
   permissionBlock: { gap: 12 },
-  permissionDesc: { fontSize: 16, color: UI.colors.muted, lineHeight: 26 },
+  permissionDesc: { fontSize: 16, color: PALETTE.onSurfaceDim, lineHeight: 26 },
 });

@@ -44,7 +44,7 @@ function RootLayoutNav() {
     if (status !== 'authenticated' && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (status === 'authenticated' && inAuthGroup) {
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/gallery');
     }
   }, [status, segments, router]);
 
