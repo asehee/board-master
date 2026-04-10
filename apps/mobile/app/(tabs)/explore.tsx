@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,14 +9,23 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { TopBar } from '@/components/ui/top-bar';
 import { useAuthStore } from '@/src/providers/AppProvider';
 import { usePresetStore } from '@/src/stores/preset.store';
-import { UI } from '@/src/theme/tokens';
+
+const PAL = {
+  bg: '#131313',
+  surfaceLow: '#1c1b1b',
+  surface: '#201f1f',
+  surfaceHigh: '#2a2a2a',
+  text: '#e5e2e1',
+  textDim: 'rgba(226,191,176,0.72)',
+  textSoft: 'rgba(229,226,225,0.56)',
+  primary: '#ff6b00',
+  primarySoft: '#ffb693',
+  border: 'rgba(169,138,125,0.35)',
+};
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -30,7 +40,6 @@ export default function SettingsScreen() {
     load();
   }, [load]);
 
-  // 로드 완료 시 draft 동기화
   useEffect(() => {
     if (isLoaded) {
       setAlbumDraft(albumName);
@@ -68,109 +77,190 @@ export default function SettingsScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + UI.spacing.xxl, paddingBottom: insets.bottom + UI.spacing.xxxl },
-      ]}
-      keyboardShouldPersistTaps="handled">
-      <TopBar title="설정" subtitle="앨범과 보드 정보를 일관된 형식으로 관리하세요." />
-
-      <Card style={styles.section}>
-        <Input
-          label="앨범 이름"
-          value={albumDraft}
-          onChangeText={setAlbumDraft}
-          placeholder="앨범 이름 입력"
-          helperText="촬영한 사진이 저장될 갤러리 앨범 이름입니다."
-          maxLength={40}
-          returnKeyType="done"
-        />
-        <Text style={styles.preview}>
-          저장 위치: <Text style={styles.previewBold}>{albumDraft.trim() || '(이름 없음)'}</Text>
-        </Text>
-      </Card>
-
-      <Card style={styles.section}>
-        <Text style={styles.sectionTitle}>보드판 라벨</Text>
-        <Text style={styles.sectionDesc}>보드판에 표시 될 라벨을 설정 할 수 있습니다.</Text>
-
-        <View style={styles.labelTable}>
-          {[0, 1, 2, 3].map((row) => (
-            <View key={row} style={[styles.labelRow, row < 3 && styles.rowBorder]}>
-              {[0, 1].map((col) => {
-                const idx = row * 2 + col;
-                return (
-                  <View key={col} style={[styles.labelCell, col === 0 && styles.cellDivider]}>
-                    <TextInput
-                      style={styles.labelInput}
-                      value={labelDraft[idx]}
-                      onChangeText={(v) => handleLabelChange(idx, v)}
-                      placeholder="라벨 입력"
-                      placeholderTextColor={UI.colors.muted}
-                      maxLength={20}
-                      returnKeyType="next"
-                    />
-                  </View>
-                );
-              })}
-            </View>
-          ))}
+      contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: insets.bottom + 110 }}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.appBar}>
+        <View style={styles.appBarLeft}>
+          <Pressable style={styles.iconBtn}>
+            <MaterialIcons name="folder-open" size={21} color={PAL.primary} />
+          </Pressable>
+          <Text style={styles.brand}>Folders</Text>
         </View>
-      </Card>
+      </View>
 
-      <Button label="설정 저장" style={styles.saveBtn} onPress={handleSaveAll} loading={isSaving} />
+      <View style={styles.content}>
+        <View style={styles.card}>
+          <Text style={styles.sectionLabel}>Storage Album</Text>
+          <Text style={styles.cardTitle}>Album Settings</Text>
+          <Text style={styles.cardDesc}>촬영 사진이 저장될 기본 앨범 이름을 설정합니다.</Text>
 
-      <Card style={styles.section}>
-        <Text style={styles.sectionTitle}>계정</Text>
-        <Button label="로그아웃" variant="secondary" style={styles.logoutBtn} onPress={handleLogout} />
-      </Card>
+          <TextInput
+            style={styles.albumInput}
+            value={albumDraft}
+            onChangeText={setAlbumDraft}
+            placeholder="앨범 이름 입력"
+            placeholderTextColor={PAL.textSoft}
+            maxLength={40}
+            returnKeyType="done"
+          />
+          <Text style={styles.previewText}>
+            저장 위치: <Text style={styles.previewStrong}>{albumDraft.trim() || '(이름 없음)'}</Text>
+          </Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionLabel}>Board Labels</Text>
+          <Text style={styles.cardTitle}>Label Matrix</Text>
+          <Text style={styles.cardDesc}>보드판에 표시될 라벨을 설정할 수 있습니다.</Text>
+
+          <View style={styles.labelTable}>
+            {[0, 1, 2, 3].map((row) => (
+              <View key={row} style={[styles.labelRow, row < 3 && styles.rowBorder]}>
+                {[0, 1].map((col) => {
+                  const idx = row * 2 + col;
+                  return (
+                    <View key={col} style={[styles.labelCell, col === 0 && styles.cellDivider]}>
+                      <TextInput
+                        style={styles.labelInput}
+                        value={labelDraft[idx]}
+                        onChangeText={(v) => handleLabelChange(idx, v)}
+                        placeholder="라벨 입력"
+                        placeholderTextColor={PAL.textSoft}
+                        maxLength={20}
+                        returnKeyType="next"
+                      />
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <Pressable style={[styles.primaryBtn, isSaving && styles.disabledBtn]} onPress={handleSaveAll} disabled={isSaving}>
+          <MaterialIcons name="save" size={18} color="#131313" />
+          <Text style={styles.primaryBtnText}>{isSaving ? 'Saving...' : 'Save Settings'}</Text>
+        </Pressable>
+
+        <View style={styles.card}>
+          <Text style={styles.sectionLabel}>Account</Text>
+          <Text style={styles.cardTitle}>Session</Text>
+          <Pressable style={styles.ghostBtn} onPress={handleLogout}>
+            <MaterialIcons name="logout" size={18} color={PAL.text} />
+            <Text style={styles.ghostBtnText}>Logout</Text>
+          </Pressable>
+        </View>
+      </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: UI.colors.white },
-  content: { paddingHorizontal: UI.spacing.xxl, gap: UI.spacing.xxl },
-
-  section: { gap: UI.spacing.md },
-  sectionTitle: {
-    color: UI.colors.muted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    ...UI.typography.caption,
+  container: { flex: 1, backgroundColor: PAL.bg },
+  appBar: {
+    height: 58,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  sectionDesc: { color: UI.colors.muted, lineHeight: 20, ...UI.typography.caption },
-
-  preview: { color: UI.colors.muted, ...UI.typography.caption },
-  previewBold: { fontWeight: '600', color: UI.colors.primary },
+  appBarLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: PAL.surfaceHigh,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  brand: { color: PAL.primary, fontSize: 22, fontWeight: '900', textTransform: 'uppercase' },
+  content: { paddingHorizontal: 16, gap: 14 },
+  card: {
+    backgroundColor: PAL.surfaceLow,
+    borderRadius: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(90,65,54,0.22)',
+  },
+  sectionLabel: {
+    color: PAL.textSoft,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  cardTitle: { color: PAL.text, fontSize: 18, fontWeight: '800', marginBottom: 6 },
+  cardDesc: { color: PAL.textDim, fontSize: 12, marginBottom: 10 },
+  albumInput: {
+    height: 46,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: PAL.border,
+    paddingHorizontal: 12,
+    backgroundColor: PAL.surface,
+    color: PAL.text,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  previewText: { marginTop: 8, color: PAL.textSoft, fontSize: 12 },
+  previewStrong: { color: PAL.primarySoft, fontWeight: '700' },
 
   labelTable: {
-    borderWidth: 1,
-    borderColor: UI.colors.borderStrong,
-    borderRadius: UI.radius.md,
+    borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: UI.colors.white,
+    borderWidth: 1,
+    borderColor: PAL.border,
+    backgroundColor: PAL.surface,
   },
   labelRow: { flexDirection: 'row' },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: UI.colors.borderStrong },
-  labelCell: {
-    flex: 1,
-    minHeight: 64,
-    paddingHorizontal: UI.spacing.md,
-    justifyContent: 'center',
-  },
-  cellDivider: { borderRightWidth: 1, borderRightColor: UI.colors.borderStrong },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: PAL.border },
+  labelCell: { flex: 1, minHeight: 60, justifyContent: 'center', paddingHorizontal: 10 },
+  cellDivider: { borderRightWidth: 1, borderRightColor: PAL.border },
   labelInput: {
-    height: 34,
+    height: 36,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: UI.colors.border,
-    borderRadius: UI.radius.sm,
-    paddingHorizontal: UI.spacing.sm,
-    color: UI.colors.primary,
-    ...UI.typography.caption,
+    borderColor: 'rgba(169,138,125,0.24)',
+    paddingHorizontal: 10,
+    color: PAL.text,
+    fontSize: 13,
+    backgroundColor: PAL.surfaceLow,
   },
 
-  saveBtn: {},
-
-  logoutBtn: {},
+  primaryBtn: {
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: PAL.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  primaryBtnText: {
+    color: '#131313',
+    fontSize: 14,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  disabledBtn: { opacity: 0.6 },
+  ghostBtn: {
+    height: 48,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: PAL.border,
+    backgroundColor: PAL.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  ghostBtnText: {
+    color: PAL.text,
+    fontSize: 13,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
 });

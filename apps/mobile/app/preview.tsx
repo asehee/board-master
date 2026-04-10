@@ -18,6 +18,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -37,10 +38,9 @@ import {
   useCanvasRef,
   useImage,
 } from '@shopify/react-native-skia';
+import { MaterialIcons } from '@expo/vector-icons';
 
-import { Button } from '@/components/ui/button';
 import { usePresetStore } from '@/src/stores/preset.store';
-import { UI } from '@/src/theme/tokens';
 import {
   parseOptionalNumber,
   resolveIsLandscape,
@@ -61,6 +61,21 @@ const BOARD_HEIGHT_MAX_RATIO = 0.25;
 
 // 가로: 우측 보드 너비 비율
 const BOARD_W_RATIO_LANDSCAPE = 0.38;
+const TOP_BAR_H = 64;
+
+const PAL = {
+  bg: '#131313',
+  surface: 'rgba(19,19,19,0.9)',
+  surfaceStrong: 'rgba(0,0,0,0.5)',
+  text: '#e5e2e1',
+  textDim: 'rgba(229,226,225,0.7)',
+  primary: '#ff6b00',
+  primarySoft: '#ffb693',
+  onPrimary: '#351000',
+  boardBg: 'rgba(19,19,19,0.78)',
+  boardBorder: 'rgba(255,182,147,0.65)',
+  boardCellBorder: 'rgba(255,182,147,0.35)',
+};
 
 export default function PreviewScreen() {
   const { photo, photoW, photoH, photoOrientation } = useLocalSearchParams<{
@@ -124,7 +139,7 @@ export default function PreviewScreen() {
     return boardLabels.map((label) => {
       const para = Skia.ParagraphBuilder.Make({
         textStyle: {
-          color: Skia.Color(UI.colors.muted),
+          color: Skia.Color(PAL.textDim),
           fontSize: 10,
           fontFamilies: ['-apple-system', 'Helvetica', 'Arial'],
         },
@@ -141,7 +156,7 @@ export default function PreviewScreen() {
     return values.map((value) => {
       const para = Skia.ParagraphBuilder.Make({
         textStyle: {
-          color: Skia.Color(UI.colors.primary),
+          color: Skia.Color(PAL.primarySoft),
           fontSize: 14,
           fontFamilies: ['-apple-system', 'Helvetica', 'Arial'],
         },
@@ -192,7 +207,7 @@ export default function PreviewScreen() {
       }
 
       Alert.alert('저장 완료', `"${albumName}" 앨범에 저장됐습니다.`, [
-        { text: '확인', onPress: () => router.replace('/(tabs)') },
+        { text: '확인', onPress: () => router.replace('/(tabs)/gallery') },
       ]);
     } catch (e) {
       Alert.alert('저장 실패', e instanceof Error ? e.message : '오류 발생');
@@ -224,7 +239,7 @@ export default function PreviewScreen() {
                 value={values[idx]}
                 onChangeText={(t) => handleSetValue(idx, t)}
                   placeholder="입력"
-                  placeholderTextColor={UI.colors.muted}
+                  placeholderTextColor={PAL.textDim}
                   returnKeyType="next"
                   maxLength={30}
                 />
@@ -247,21 +262,21 @@ export default function PreviewScreen() {
             <SkiaImage image={skiaPhoto} x={0} y={0} width={width} height={totalH} fit="cover" />
           )}
           {/* 보드 배경 */}
-          <Rect x={boardX_L} y={boardTopY_L} width={boardW_L} height={boardH_L} color={UI.colors.white} />
+          <Rect x={boardX_L} y={boardTopY_L} width={boardW_L} height={boardH_L} color={PAL.boardBg} />
           {/* 외곽 테두리 */}
-          <Line p1={{ x: boardX_L, y: boardTopY_L }} p2={{ x: boardX_L + boardW_L, y: boardTopY_L }} color={UI.colors.borderStrong} strokeWidth={1} />
-          <Line p1={{ x: boardX_L, y: boardTopY_L + boardH_L }} p2={{ x: boardX_L + boardW_L, y: boardTopY_L + boardH_L }} color={UI.colors.borderStrong} strokeWidth={1} />
-          <Line p1={{ x: boardX_L, y: boardTopY_L }} p2={{ x: boardX_L, y: boardTopY_L + boardH_L }} color={UI.colors.borderStrong} strokeWidth={1} />
-          <Line p1={{ x: boardX_L + boardW_L, y: boardTopY_L }} p2={{ x: boardX_L + boardW_L, y: boardTopY_L + boardH_L }} color={UI.colors.borderStrong} strokeWidth={1} />
+          <Line p1={{ x: boardX_L, y: boardTopY_L }} p2={{ x: boardX_L + boardW_L, y: boardTopY_L }} color={PAL.boardBorder} strokeWidth={1} />
+          <Line p1={{ x: boardX_L, y: boardTopY_L + boardH_L }} p2={{ x: boardX_L + boardW_L, y: boardTopY_L + boardH_L }} color={PAL.boardBorder} strokeWidth={1} />
+          <Line p1={{ x: boardX_L, y: boardTopY_L }} p2={{ x: boardX_L, y: boardTopY_L + boardH_L }} color={PAL.boardBorder} strokeWidth={1} />
+          <Line p1={{ x: boardX_L + boardW_L, y: boardTopY_L }} p2={{ x: boardX_L + boardW_L, y: boardTopY_L + boardH_L }} color={PAL.boardBorder} strokeWidth={1} />
           {/* 수직 중앙선 */}
-          <Line p1={{ x: boardX_L + cellW, y: boardTopY_L }} p2={{ x: boardX_L + cellW, y: boardTopY_L + boardH_L }} color={UI.colors.borderStrong} strokeWidth={1} />
+          <Line p1={{ x: boardX_L + cellW, y: boardTopY_L }} p2={{ x: boardX_L + cellW, y: boardTopY_L + boardH_L }} color={PAL.boardBorder} strokeWidth={1} />
           {/* 수평 행 구분선 */}
           {[1, 2, 3].map((i) => (
             <Line
               key={i}
               p1={{ x: boardX_L, y: boardTopY_L + cellH_L * i }}
               p2={{ x: boardX_L + boardW_L, y: boardTopY_L + cellH_L * i }}
-              color={UI.colors.borderStrong}
+              color={PAL.boardBorder}
               strokeWidth={1}
             />
           ))}
@@ -287,21 +302,21 @@ export default function PreviewScreen() {
           <SkiaImage image={skiaPhoto} x={0} y={0} width={width} height={totalH} fit="cover" />
         )}
         {/* 보드 배경 */}
-        <Rect x={boardX_P} y={boardY_P} width={boardW_P} height={boardH_P} color={UI.colors.white} />
+        <Rect x={boardX_P} y={boardY_P} width={boardW_P} height={boardH_P} color={PAL.boardBg} />
         {/* 외곽 테두리 */}
-        <Line p1={{ x: boardX_P, y: boardY_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P }} color={UI.colors.borderStrong} strokeWidth={1} />
-        <Line p1={{ x: boardX_P, y: boardY_P + boardH_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P + boardH_P }} color={UI.colors.borderStrong} strokeWidth={1} />
-        <Line p1={{ x: boardX_P, y: boardY_P }} p2={{ x: boardX_P, y: boardY_P + boardH_P }} color={UI.colors.borderStrong} strokeWidth={1} />
-        <Line p1={{ x: boardX_P + boardW_P, y: boardY_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P + boardH_P }} color={UI.colors.borderStrong} strokeWidth={1} />
+        <Line p1={{ x: boardX_P, y: boardY_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P }} color={PAL.boardBorder} strokeWidth={1} />
+        <Line p1={{ x: boardX_P, y: boardY_P + boardH_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P + boardH_P }} color={PAL.boardBorder} strokeWidth={1} />
+        <Line p1={{ x: boardX_P, y: boardY_P }} p2={{ x: boardX_P, y: boardY_P + boardH_P }} color={PAL.boardBorder} strokeWidth={1} />
+        <Line p1={{ x: boardX_P + boardW_P, y: boardY_P }} p2={{ x: boardX_P + boardW_P, y: boardY_P + boardH_P }} color={PAL.boardBorder} strokeWidth={1} />
         {/* 수직 중앙선 */}
-        <Line p1={{ x: boardX_P + cellW, y: boardY_P }} p2={{ x: boardX_P + cellW, y: boardY_P + boardH_P }} color={UI.colors.borderStrong} strokeWidth={1} />
+        <Line p1={{ x: boardX_P + cellW, y: boardY_P }} p2={{ x: boardX_P + cellW, y: boardY_P + boardH_P }} color={PAL.boardBorder} strokeWidth={1} />
         {/* 수평 행 구분선 */}
         {[1, 2, 3].map((i) => (
           <Line
             key={i}
             p1={{ x: boardX_P, y: boardY_P + cellH_P * i }}
             p2={{ x: boardX_P + boardW_P, y: boardY_P + cellH_P * i }}
-            color={UI.colors.borderStrong}
+            color={PAL.boardBorder}
             strokeWidth={1}
           />
         ))}
@@ -336,9 +351,9 @@ export default function PreviewScreen() {
               top: boardTopY_L,
               width: boardW_L,
               height: boardH_L,
-              backgroundColor: UI.colors.white,
+              backgroundColor: PAL.boardBg,
               borderWidth: 1,
-              borderColor: UI.colors.borderStrong,
+              borderColor: PAL.boardBorder,
               borderRadius: 8,
               overflow: 'hidden',
             }}>
@@ -359,9 +374,9 @@ export default function PreviewScreen() {
             top: boardY_P,
             width: boardW_P,
             height: boardH_P,
-            backgroundColor: UI.colors.white,
+            backgroundColor: PAL.boardBg,
             borderWidth: 1,
-            borderColor: UI.colors.borderStrong,
+            borderColor: PAL.boardBorder,
             borderRadius: 8,
             overflow: 'hidden',
           }}>
@@ -375,7 +390,7 @@ export default function PreviewScreen() {
   if (!skiaPhoto) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator color={UI.colors.white} size="large" />
+        <ActivityIndicator color={PAL.primary} size="large" />
       </View>
     );
   }
@@ -391,11 +406,18 @@ export default function PreviewScreen() {
         scrollEnabled={false}>
         {renderSkiaCanvas()}
         {renderEditUI()}
+        <View style={[styles.topBar, { paddingTop: insets.top + 8 }]}>
+          <Pressable style={styles.topIconBtn} onPress={() => router.back()} disabled={isSaving}>
+            <MaterialIcons name="arrow-back" size={22} color={PAL.primary} />
+          </Pressable>
+          <Text style={styles.topTitle}>Edit Board</Text>
+          <View style={styles.topGhost} />
+        </View>
 
         {/* 저장 중 오버레이 */}
         {isSaving && (
           <View style={[styles.savingOverlay, { height: totalH }]}>
-            <ActivityIndicator size="large" color={UI.colors.primary} />
+            <ActivityIndicator size="large" color={PAL.primary} />
             <Text style={styles.savingText}>저장 중...</Text>
           </View>
         )}
@@ -403,28 +425,26 @@ export default function PreviewScreen() {
 
       {/* 하단 액션 바 */}
       <View style={[styles.bar, { paddingBottom: insets.bottom + 8 }]}>
-        <Button
-          label="다시 촬영"
-          variant="outlineOnDark"
-          style={styles.retakeBtn}
-          onPress={() => router.back()}
-          disabled={isSaving}
-        />
-        <Button
-          label="저장"
-          variant="secondary"
-          style={styles.saveBtn}
-          onPress={handleSave}
-          loading={isSaving}
-        />
+        <Pressable style={[styles.actionBtn, styles.retakeBtn, isSaving && styles.disabledBtn]} onPress={() => router.back()} disabled={isSaving}>
+          <MaterialIcons name="replay" size={18} color={PAL.text} />
+          <Text style={styles.retakeText}>다시 촬영</Text>
+        </Pressable>
+        <Pressable style={[styles.actionBtn, styles.saveBtn, isSaving && styles.disabledBtn]} onPress={handleSave} disabled={isSaving}>
+          {isSaving ? (
+            <ActivityIndicator size="small" color={PAL.onPrimary} />
+          ) : (
+            <MaterialIcons name="save" size={18} color={PAL.onPrimary} />
+          )}
+          <Text style={styles.saveText}>저장</Text>
+        </Pressable>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: UI.colors.primary },
-  loadingContainer: { flex: 1, backgroundColor: UI.colors.primary, justifyContent: 'center', alignItems: 'center' },
+  container: { flex: 1, backgroundColor: PAL.bg },
+  loadingContainer: { flex: 1, backgroundColor: PAL.bg, justifyContent: 'center', alignItems: 'center' },
 
   // ─── 보드 행/셀 (세로) ───
   boardRowP: { flex: 1, flexDirection: 'row' },
@@ -433,20 +453,20 @@ const styles = StyleSheet.create({
   boardRowH: { flex: 1, flexDirection: 'row' },
 
   // ─── 공통 행 구분선 ───
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: UI.colors.borderStrong },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: PAL.boardCellBorder },
 
   // ─── 공통 셀 ───
   cell: { flex: 1, paddingHorizontal: CELL_PAD, paddingTop: 5, paddingBottom: 4 },
-  cellDivider: { borderRightWidth: 1, borderRightColor: UI.colors.borderStrong },
+  cellDivider: { borderRightWidth: 1, borderRightColor: PAL.boardCellBorder },
   cellLabel: {
     fontSize: 10,
     fontWeight: '600',
-    color: UI.colors.muted,
+    color: PAL.textDim,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
     marginBottom: 2,
   },
-  cellInput: { flex: 1, fontSize: 14, color: UI.colors.primary, padding: 0 },
+  cellInput: { flex: 1, fontSize: 14, color: PAL.primarySoft, padding: 0, fontWeight: '600' },
 
   // ─── 저장 오버레이 ───
   savingOverlay: {
@@ -454,25 +474,70 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(255,255,255,0.92)',
+    backgroundColor: 'rgba(19,19,19,0.72)',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 12,
   },
-  savingText: { fontSize: 15, color: UI.colors.primary, fontWeight: '600' },
+  savingText: { fontSize: 15, color: PAL.text, fontWeight: '600' },
+
+  topBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    minHeight: TOP_BAR_H,
+    backgroundColor: PAL.surface,
+  },
+  topIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: PAL.surfaceStrong,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  topTitle: {
+    color: PAL.primary,
+    fontSize: 18,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+  },
+  topGhost: { width: 36, height: 36 },
 
   // ─── 하단 바 ───
   bar: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
     paddingTop: 10,
     gap: 12,
-    backgroundColor: UI.colors.primary,
+    backgroundColor: PAL.surface,
+  },
+  actionBtn: {
+    height: 52,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
   },
   retakeBtn: {
     flex: 1,
+    borderWidth: 1,
+    borderColor: PAL.boardBorder,
+    backgroundColor: 'transparent',
   },
+  retakeText: { color: PAL.text, fontSize: 14, fontWeight: '800' },
   saveBtn: {
     flex: 2,
+    backgroundColor: PAL.primary,
   },
+  saveText: { color: PAL.onPrimary, fontSize: 15, fontWeight: '900' },
+  disabledBtn: { opacity: 0.6 },
 });
