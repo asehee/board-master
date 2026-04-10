@@ -302,9 +302,6 @@ export default function GalleryScreen() {
         </View>
       </ScrollView>
 
-      <Pressable style={[styles.fab, { bottom: insets.bottom + 80 }]} onPress={() => router.push('/camera')}>
-        <MaterialIcons name="photo-camera" size={24} color={PAL.bg} />
-      </Pressable>
     </View>
   );
 }
@@ -515,22 +512,6 @@ const styles = StyleSheet.create({
   statDesc: { color: PAL.textSoft, fontSize: 12, marginTop: 2 },
   storageTrack: { marginTop: 10, backgroundColor: PAL.surfaceHighest, height: 6, borderRadius: 999 },
   storageFill: { width: '42%', height: 6, borderRadius: 999, backgroundColor: PAL.primarySoft },
-
-  fab: {
-    position: 'absolute',
-    right: 18,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: PAL.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 9,
-  },
 
   albumGridWrap: {
     paddingHorizontal: 24,
