@@ -137,7 +137,7 @@ export default function GalleryScreen() {
             </Pressable>
             <View>
               <Text style={styles.brandTitle} numberOfLines={1}>{selectedAlbum.title}</Text>
-              <Text style={styles.subTitle}>{albumPhotos.length} photos</Text>
+              <Text style={styles.subTitle}>사진 {albumPhotos.length}장</Text>
             </View>
           </View>
         </View>
@@ -182,8 +182,8 @@ export default function GalleryScreen() {
             <MaterialIcons name="grid-view" size={21} color={PAL.primary} />
           </View>
           <View>
-            <Text style={styles.brandTitle}>Archive</Text>
-            <Text style={styles.subTitle}>{albums.length} albums</Text>
+            <Text style={styles.brandTitle}>보관함</Text>
+            <Text style={styles.subTitle}>앨범 {albums.length}개</Text>
           </View>
         </View>
       </View>
@@ -208,18 +208,18 @@ export default function GalleryScreen() {
         <Pressable
           style={[styles.filterChip, rootTab === 'albums' && styles.filterChipActive]}
           onPress={() => setRootTab('albums')}>
-          <Text style={[styles.filterText, rootTab === 'albums' && styles.filterTextActive]}>Albums</Text>
+          <Text style={[styles.filterText, rootTab === 'albums' && styles.filterTextActive]}>앨범</Text>
         </Pressable>
         <Pressable
           style={[styles.filterChip, rootTab === 'recent' && styles.filterChipActive]}
           onPress={() => setRootTab('recent')}>
-          <Text style={[styles.filterText, rootTab === 'recent' && styles.filterTextActive]}>Recent</Text>
+          <Text style={[styles.filterText, rootTab === 'recent' && styles.filterTextActive]}>최근 사진</Text>
         </Pressable>
         <Pressable
           style={styles.sortBtn}
           onPress={() => setSortMode((prev) => (prev === 'recent' ? 'name' : 'recent'))}>
           <MaterialIcons name="sort" size={16} color={PAL.text} />
-          <Text style={styles.sortText}>{sortMode === 'recent' ? 'Recent' : 'Name'}</Text>
+          <Text style={styles.sortText}>{sortMode === 'recent' ? '최신순' : '이름순'}</Text>
         </Pressable>
       </View>
 
@@ -251,7 +251,7 @@ export default function GalleryScreen() {
                 }}>
                 <View style={styles.albumTop}>
                   <MaterialIcons name="folder" size={36} color={PAL.primary} />
-                  <Text style={styles.albumCount}>{item.assetCount} items</Text>
+                  <Text style={styles.albumCount}>{item.assetCount}장</Text>
                 </View>
                 <Text style={styles.albumName} numberOfLines={1}>{item.title}</Text>
               </Pressable>

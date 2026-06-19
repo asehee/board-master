@@ -9,9 +9,9 @@ type TabConfig = {
 };
 
 const TAB_CONFIG: Record<string, TabConfig> = {
-  index: { label: 'Dashboard', icon: 'dashboard' },
-  explore: { label: 'Settings', icon: 'settings' },
-  gallery: { label: 'Gallery', icon: 'grid-view' },
+  index: { label: '홈', icon: 'dashboard' },
+  explore: { label: '설정', icon: 'settings' },
+  gallery: { label: '갤러리', icon: 'grid-view' },
 };
 
 const PAL = {
@@ -75,7 +75,7 @@ export function AppFooterNav({ state, descriptors, navigation, insets }: BottomT
         {renderTab(orderedTabNames[1])}
         <Pressable style={styles.item} onPress={() => router.push('/camera')}>
           <MaterialIcons name="photo-camera" size={22} color={PAL.inactiveFg} />
-          <Text style={[styles.label, styles.labelInactive]}>Camera</Text>
+          <Text style={[styles.label, styles.labelInactive]}>카메라</Text>
         </Pressable>
       </View>
     </View>

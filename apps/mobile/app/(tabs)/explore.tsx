@@ -84,16 +84,16 @@ export default function SettingsScreen() {
       <View style={styles.appBar}>
         <View style={styles.appBarLeft}>
           <Pressable style={styles.iconBtn}>
-            <MaterialIcons name="folder-open" size={21} color={PAL.primary} />
+            <MaterialIcons name="settings" size={21} color={PAL.primary} />
           </Pressable>
-          <Text style={styles.brand}>Folders</Text>
+          <Text style={styles.brand}>설정</Text>
         </View>
       </View>
 
       <View style={styles.content}>
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Storage Album</Text>
-          <Text style={styles.cardTitle}>Album Settings</Text>
+          <Text style={styles.sectionLabel}>저장 앨범</Text>
+          <Text style={styles.cardTitle}>앨범 설정</Text>
           <Text style={styles.cardDesc}>촬영 사진이 저장될 기본 앨범 이름을 설정합니다.</Text>
 
           <TextInput
@@ -111,8 +111,8 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Board Labels</Text>
-          <Text style={styles.cardTitle}>Label Matrix</Text>
+          <Text style={styles.sectionLabel}>보드 라벨</Text>
+          <Text style={styles.cardTitle}>라벨 설정</Text>
           <Text style={styles.cardDesc}>보드판에 표시될 라벨을 설정할 수 있습니다.</Text>
 
           <View style={styles.labelTable}>
@@ -141,15 +141,15 @@ export default function SettingsScreen() {
 
         <Pressable style={[styles.primaryBtn, isSaving && styles.disabledBtn]} onPress={handleSaveAll} disabled={isSaving}>
           <MaterialIcons name="save" size={18} color="#131313" />
-          <Text style={styles.primaryBtnText}>{isSaving ? 'Saving...' : 'Save Settings'}</Text>
+          <Text style={styles.primaryBtnText}>{isSaving ? '저장 중...' : '설정 저장'}</Text>
         </Pressable>
 
         <View style={styles.card}>
-          <Text style={styles.sectionLabel}>Account</Text>
-          <Text style={styles.cardTitle}>Session</Text>
+          <Text style={styles.sectionLabel}>계정</Text>
+          <Text style={styles.cardTitle}>세션 관리</Text>
           <Pressable style={styles.ghostBtn} onPress={handleLogout}>
             <MaterialIcons name="logout" size={18} color={PAL.text} />
-            <Text style={styles.ghostBtnText}>Logout</Text>
+            <Text style={styles.ghostBtnText}>로그아웃</Text>
           </Pressable>
         </View>
       </View>

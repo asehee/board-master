@@ -42,8 +42,8 @@ export function LoginScreen() {
               <MaterialIcons name="construction" size={34} color="#ff6b00" />
               <Text style={styles.brandTitle}>BuildTrack</Text>
             </View>
-            <Text style={styles.title}>SECURE ENTRY</Text>
-            <Text style={styles.subtitle}>FIELD ACCESS AUTHORIZATION REQUIRED</Text>
+            <Text style={styles.title}>안전 로그인</Text>
+            <Text style={styles.subtitle}>현장 접근을 위해 인증이 필요합니다</Text>
           </View>
 
           {error ? (
@@ -54,7 +54,7 @@ export function LoginScreen() {
 
           <View style={styles.formSection}>
             <View style={styles.inputWrap}>
-              <Text style={styles.inputLabel}>PERSONNEL PHONE NUMBER</Text>
+              <Text style={styles.inputLabel}>담당자 휴대폰 번호</Text>
               <View style={styles.phoneInputRow}>
                 <View style={styles.countryCodeBox}>
                   <Text style={styles.countryCodeText}>+1</Text>
@@ -75,7 +75,7 @@ export function LoginScreen() {
             <View style={styles.noticeRow}>
               <MaterialIcons name="info-outline" size={18} color="#ff6b00" />
               <Text style={styles.noticeText}>
-                A verification code will be sent to this device. Standard data and messaging rates for site logistics apply.
+                이 기기로 인증 코드가 전송됩니다. 통신 환경에 따라 문자 수신이 지연될 수 있습니다.
               </Text>
             </View>
 
@@ -84,7 +84,7 @@ export function LoginScreen() {
               onPress={handleSendCode}
               disabled={isLoading}
               activeOpacity={0.9}>
-              <Text style={styles.sendButtonLabel}>{isLoading ? 'SENDING...' : 'SEND CODE'}</Text>
+              <Text style={styles.sendButtonLabel}>{isLoading ? '전송 중...' : '인증 코드 받기'}</Text>
               <MaterialIcons name="arrow-forward" size={20} color="#ffffff" />
             </TouchableOpacity>
           </View>
@@ -92,17 +92,17 @@ export function LoginScreen() {
           <View style={styles.footer}>
             <TouchableOpacity
               style={styles.ssoButton}
-              onPress={() => Alert.alert('안내', 'Corporate SSO는 준비 중입니다.')}
+              onPress={() => Alert.alert('안내', '사내 계정 로그인은 준비 중입니다.')}
               activeOpacity={0.8}>
               <MaterialIcons name="vpn-key" size={16} color="#a1a1aa" />
-              <Text style={styles.ssoText}>LOGIN WITH CORPORATE SSO</Text>
+              <Text style={styles.ssoText}>사내 계정으로 로그인</Text>
             </TouchableOpacity>
 
             <View style={styles.metaRow}>
               <Text style={styles.metaText}>BuildTrack v4.2.0</Text>
               <View style={styles.metaSecure}>
                 <MaterialIcons name="lock" size={12} color="rgba(161,161,170,0.4)" />
-                <Text style={styles.metaText}>SECURED</Text>
+                <Text style={styles.metaText}>보안 연결</Text>
               </View>
             </View>
           </View>

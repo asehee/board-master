@@ -410,7 +410,7 @@ export default function PreviewScreen() {
           <Pressable style={styles.topIconBtn} onPress={() => router.back()} disabled={isSaving}>
             <MaterialIcons name="arrow-back" size={22} color={PAL.primary} />
           </Pressable>
-          <Text style={styles.topTitle}>Edit Board</Text>
+          <Text style={styles.topTitle}>보드 편집</Text>
           <View style={styles.topGhost} />
         </View>
 

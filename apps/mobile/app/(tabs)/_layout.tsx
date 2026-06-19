@@ -13,19 +13,19 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: '홈',
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Settings',
+          title: '설정',
         }}
       />
       <Tabs.Screen
         name="gallery"
         options={{
-          title: 'Gallery',
+          title: '갤러리',
         }}
       />
     </Tabs>

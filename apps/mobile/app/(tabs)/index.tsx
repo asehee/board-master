@@ -85,7 +85,7 @@ export default function HomeScreen() {
 
   const lastCaptureText = useMemo(() => {
     const latest = recentPhotos[0];
-    if (!latest?.creationTime) return 'No activity';
+    if (!latest?.creationTime) return '기록 없음';
     const d = new Date(latest.creationTime);
     const hh = String(d.getHours()).padStart(2, '0');
     const mm = String(d.getMinutes()).padStart(2, '0');
@@ -111,9 +111,9 @@ export default function HomeScreen() {
 
       <View style={styles.content}>
         <View style={styles.heroCard}>
-          <Text style={styles.heroCaption}>ACTIVE SITE</Text>
-          <Text style={styles.heroTitle}>East Wing Expansion</Text>
-          <Text style={styles.heroDesc}>Album: {albumName}</Text>
+          <Text style={styles.heroCaption}>현재 작업</Text>
+          <Text style={styles.heroTitle}>보드 촬영 현황</Text>
+          <Text style={styles.heroDesc}>저장 앨범: {albumName}</Text>
           <View style={styles.heroStats}>
             <Text style={styles.heroProgress}>64%</Text>
             <View style={styles.progressTrack}>
@@ -124,22 +124,22 @@ export default function HomeScreen() {
 
         <View style={styles.metricRow}>
           <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>Total Files</Text>
+            <Text style={styles.metricLabel}>전체 사진</Text>
             <Text style={styles.metricValue}>{totalCount}</Text>
           </View>
           <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>Recent Uploads</Text>
+            <Text style={styles.metricLabel}>오늘 저장</Text>
             <Text style={styles.metricValue}>{todayCount}</Text>
           </View>
           <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>Last Capture</Text>
+            <Text style={styles.metricLabel}>최근 촬영</Text>
             <Text style={styles.metricValueSmall}>{lastCaptureText}</Text>
           </View>
         </View>
 
         <View style={styles.sectionHead}>
           <View style={styles.sectionBar} />
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={styles.sectionTitle}>빠른 실행</Text>
         </View>
 
         {loading ? (
@@ -150,28 +150,28 @@ export default function HomeScreen() {
           <View style={styles.actionGrid}>
             <Pressable style={styles.captureBtn} onPress={() => router.push('/camera')}>
               <MaterialIcons name="photo-camera" size={20} color="#131313" />
-              <Text style={styles.captureText}>Start Capture</Text>
+              <Text style={styles.captureText}>촬영 시작</Text>
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={() => router.push('/(tabs)/gallery')}>
               <MaterialIcons name="history" size={20} color={PAL.text} />
-              <Text style={styles.secondaryText}>Continue Edit</Text>
+              <Text style={styles.secondaryText}>갤러리 보기</Text>
             </Pressable>
           </View>
         )}
 
         <View style={styles.statusCard}>
-          <Text style={styles.statusTitle}>Today Status</Text>
+          <Text style={styles.statusTitle}>오늘 상태</Text>
           <View style={styles.statusRow}>
             <MaterialIcons name="check-circle" size={16} color={PAL.primarySoft} />
-            <Text style={styles.statusText}>Saved photos: {todayCount}</Text>
+            <Text style={styles.statusText}>저장된 사진: {todayCount}</Text>
           </View>
           <View style={styles.statusRow}>
             <MaterialIcons name="folder" size={16} color={PAL.primarySoft} />
-            <Text style={styles.statusText}>Target album: {albumName}</Text>
+            <Text style={styles.statusText}>저장 앨범: {albumName}</Text>
           </View>
           <View style={styles.statusRow}>
             <MaterialIcons name="collections" size={16} color={PAL.primarySoft} />
-            <Text style={styles.statusText}>Total archive: {totalCount}</Text>
+            <Text style={styles.statusText}>전체 보관 수: {totalCount}</Text>
           </View>
         </View>
       </View>
